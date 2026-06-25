@@ -31,16 +31,18 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2 lg:grid-cols-4">
         {capabilities.map(({ label, desc }) => (
-          <Card key={label}>
-            <CardContent className="flex flex-col gap-2 p-5">
-              <span className="text-primary text-sm font-semibold">{label}</span>
-              <span className="text-muted-foreground text-sm">{desc}</span>
-            </CardContent>
-          </Card>
+          <li key={label}>
+            <Card>
+              <CardContent className="flex flex-col gap-2 p-5">
+                <span className="text-primary text-sm font-semibold">{label}</span>
+                <span className="text-muted-foreground text-sm">{desc}</span>
+              </CardContent>
+            </Card>
+          </li>
         ))}
-      </section>
+      </ul>
     </main>
   );
 }
