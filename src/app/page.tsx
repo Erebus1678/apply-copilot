@@ -1,5 +1,7 @@
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 const capabilities = [
   { label: "Analyze", desc: "Paste a JD → tech stack, seniority, archetype." },
@@ -24,10 +26,9 @@ export default function Home() {
           track every application in one place.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Button size="lg">Start with a job description</Button>
-          <Button size="lg" variant="outline">
-            See the pipeline
-          </Button>
+          <Link href="/analyze" className={cn(buttonVariants({ size: "lg" }))}>
+            Start with a job description
+          </Link>
         </div>
       </section>
 
