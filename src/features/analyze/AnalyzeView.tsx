@@ -5,9 +5,8 @@ import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { analysisSchema } from "@/lib/ai/analysis";
+import { loadCv, saveCv } from "@/lib/cv-storage";
 import { AnalysisResult } from "./AnalysisResult";
-
-const CV_KEY = "apply-copilot:cv";
 
 export function AnalyzeView() {
   const [jd, setJd] = useState("");
@@ -21,7 +20,7 @@ export function AnalyzeView() {
   // Uncontrolled textarea + imperative load keeps it SSR-safe and avoids
   // setting React state from an effect.
   useEffect(() => {
-    const stored = localStorage.getItem(CV_KEY);
+    const stored = loadCv();
     // Only restore into an empty field so a remount never clobbers a live edit.
     if (stored && cvRef.current && !cvRef.current.value) cvRef.current.value = stored;
   }, []);
@@ -61,7 +60,7 @@ export function AnalyzeView() {
             id="cv"
             ref={cvRef}
             defaultValue=""
-            onChange={(e) => localStorage.setItem(CV_KEY, e.target.value)}
+            onChange={(e) => saveCv(e.target.value)}
             placeholder="Paste your CV once — it powers the fit score and gaps."
             className="min-h-40"
           />
