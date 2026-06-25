@@ -3,6 +3,7 @@ import Link from "next/link";
 const links = [
   { href: "/analyze", label: "Analyze" },
   { href: "/cover-letter", label: "Cover letter" },
+  { href: "/board", label: "Pipeline" },
 ];
 
 export function SiteNav() {
