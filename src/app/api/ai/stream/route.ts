@@ -1,5 +1,6 @@
 import { streamText } from "ai";
 import { getModel } from "@/lib/ai/provider";
+import { maybeCompressViaProxy } from "@/lib/ai/compress-proxy";
 import { streamRequestSchema } from "@/lib/ai/schemas";
 import { enforceAiRateLimit } from "@/lib/rate-limit";
 
@@ -24,9 +25,14 @@ export async function POST(req: Request) {
   }
 
   const { prompt, system, provider, apiKey, model } = parsed.data;
+  const finalPrompt = await maybeCompressViaProxy(prompt);
 
   try {
-    const result = streamText({ model: getModel({ provider, apiKey, model }), system, prompt });
+    const result = streamText({
+      model: getModel({ provider, apiKey, model }),
+      system,
+      prompt: finalPrompt,
+    });
     // ponytail: toTextStreamResponse() masks mid-stream provider errors as an
     // empty stream. Fine for this backend primitive; switch to
     // toUIMessageStreamResponse() (forwards errors via onError) when the

@@ -1,6 +1,7 @@
 import { streamText, Output } from "ai";
 import { getModel } from "@/lib/ai/provider";
 import { buildCvReviewPrompt, cvReviewRequestSchema, cvReviewSchema } from "@/lib/ai/cv-review";
+import { maybeCompressViaProxy } from "@/lib/ai/compress-proxy";
 import { enforceAiRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -24,13 +25,14 @@ export async function POST(req: Request) {
   }
 
   const { system, prompt } = buildCvReviewPrompt(parsed.data);
+  const finalPrompt = await maybeCompressViaProxy(prompt);
 
   try {
     const result = streamText({
       model: getModel(parsed.data),
       output: Output.object({ schema: cvReviewSchema }),
       system,
-      prompt,
+      prompt: finalPrompt,
     });
     return result.toTextStreamResponse();
   } catch (error) {

@@ -1,6 +1,7 @@
 import { streamText } from "ai";
 import { getModel } from "@/lib/ai/provider";
 import { coverLetterRequestSchema, buildCoverLetterPrompt } from "@/lib/ai/cover-letter";
+import { maybeCompressViaProxy } from "@/lib/ai/compress-proxy";
 import { enforceAiRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -24,9 +25,10 @@ export async function POST(req: Request) {
   }
 
   const { system, prompt } = buildCoverLetterPrompt(parsed.data);
+  const finalPrompt = await maybeCompressViaProxy(prompt);
 
   try {
-    const result = streamText({ model: getModel(parsed.data), system, prompt });
+    const result = streamText({ model: getModel(parsed.data), system, prompt: finalPrompt });
     return result.toTextStreamResponse();
   } catch (error) {
     const message = error instanceof Error ? error.message : "Cover letter generation failed";
