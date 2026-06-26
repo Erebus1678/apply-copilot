@@ -1,12 +1,16 @@
 import { streamText } from "ai";
 import { getModel } from "@/lib/ai/provider";
 import { coverLetterRequestSchema, buildCoverLetterPrompt } from "@/lib/ai/cover-letter";
+import { enforceAiRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 /** Stream a tailored, anti-slop cover letter as plain text. */
 export async function POST(req: Request) {
+  const limited = enforceAiRateLimit(req);
+  if (limited) return limited;
+
   let body: unknown;
   try {
     body = await req.json();

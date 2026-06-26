@@ -84,4 +84,22 @@ describe("BoardView", () => {
     await waitFor(() => expect(mocked.deleteApplication).toHaveBeenCalledWith("a1"));
     expect(screen.queryByText("Frontend Engineer")).not.toBeInTheDocument();
   });
+
+  it("surfaces a load error", async () => {
+    mocked.fetchApplications.mockRejectedValue(new Error("db down"));
+    render(<BoardView />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("db down");
+  });
+
+  it("rolls back an optimistic status change when the API fails", async () => {
+    mocked.fetchApplications.mockResolvedValue([
+      makeApp({ id: "a1", role: "Frontend Engineer", status: "saved" }),
+    ]);
+    mocked.patchApplication.mockRejectedValue(new Error("nope"));
+    render(<BoardView />);
+    const select = await screen.findByLabelText(/status for frontend engineer/i);
+    fireEvent.change(select, { target: { value: "interview" } });
+    await screen.findByRole("alert");
+    expect(await screen.findByLabelText(/status for frontend engineer/i)).toHaveValue("saved");
+  });
 });

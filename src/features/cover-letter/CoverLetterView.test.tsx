@@ -71,4 +71,19 @@ describe("CoverLetterView", () => {
     fireEvent.click(screen.getByRole("button", { name: /^copy$/i }));
     expect(writeText).toHaveBeenCalledWith("Dear hiring manager, ...");
   });
+
+  it("shows a generation error", () => {
+    mockState = { ...mockState, error: new Error("provider unreachable") };
+    render(<CoverLetterView />);
+    expect(screen.getByRole("alert")).toHaveTextContent("provider unreachable");
+  });
+
+  it("edits the streamed draft via setCompletion", () => {
+    mockState = { ...mockState, completion: "Draft body" };
+    render(<CoverLetterView />);
+    fireEvent.change(screen.getByLabelText(/cover letter draft/i), {
+      target: { value: "Edited body" },
+    });
+    expect(setCompletion).toHaveBeenCalledWith("Edited body");
+  });
 });

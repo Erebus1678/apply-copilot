@@ -1,5 +1,9 @@
 # Apply Copilot
 
+![CI](https://img.shields.io/badge/CI-typecheck%20·%20lint%20·%20tests%20·%20build-2563eb)
+![Core Web Vitals](https://img.shields.io/badge/Core%20Web%20Vitals-Lighthouse%20CI-22c55e)
+![Coverage](https://img.shields.io/badge/coverage-%E2%89%A580%25-22c55e)
+
 An AI copilot for job applications. Paste a job description and it extracts the
 tech stack, seniority, and role archetype; scores the fit against your CV with a
 concrete gap list; drafts a tailored cover letter; and tracks every application
@@ -39,11 +43,18 @@ pnpm dev                      # http://localhost:3000
 | `pnpm e2e`                                | Playwright end-to-end    |
 | `pnpm storybook` / `pnpm build-storybook` | Component workshop       |
 
+## Quality & performance
+
+- **Accessibility** — components are checked with `jest-axe`; Lighthouse CI gates the a11y score at ≥ 0.9.
+- **Core Web Vitals** — Lighthouse CI runs on every push (`lighthouserc.json`) and watches LCP ≤ 2.5s, CLS ≤ 0.1, TBT ≤ 200ms, FCP ≤ 1.5s.
+- **Coverage** — Jest enforces ≥ 80% statements/lines on application logic (integration boundaries are covered by Playwright + live checks).
+- **Rate limiting** — the AI endpoints are IP-rate-limited (in-memory, 20 req/min).
+
 ## Build phases
 
 - [x] **0 — Scaffold:** Next.js, Tailwind tokens, design system, Storybook, Jest, Playwright, CI, Docker
-- [ ] **1 — AI provider layer:** streaming, provider-agnostic, typed I/O schemas
-- [ ] **2 — JD analysis:** extract tech / seniority / archetype + fit + gaps
-- [ ] **3 — Cover letter:** streaming draft, anti-slop
-- [ ] **4 — Pipeline board:** CRUD + persistence + statuses
-- [ ] **5 — Polish:** Core Web Vitals, a11y, ≥80% coverage, AWS deploy
+- [x] **1 — AI provider layer:** streaming, provider-agnostic (local / OpenAI / Anthropic), typed I/O schemas
+- [x] **2 — JD analysis:** extract tech / seniority / archetype + fit + gaps (structured streaming)
+- [x] **3 — Cover letter:** streaming draft, anti-slop
+- [x] **4 — Pipeline board:** CRUD + Postgres persistence + statuses
+- [~] **5 — Polish:** provider-switch UI ✓ · design system ✓ · a11y (axe) ✓ · ≥80% coverage ✓ · Lighthouse CI ✓ · rate limiting ✓ — deploy + demo remaining

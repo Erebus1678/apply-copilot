@@ -1,12 +1,16 @@
 import { streamText } from "ai";
 import { getModel } from "@/lib/ai/provider";
 import { streamRequestSchema } from "@/lib/ai/schemas";
+import { enforceAiRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
 /** Generic provider-agnostic streaming endpoint: prompt in, text stream out. */
 export async function POST(req: Request) {
+  const limited = enforceAiRateLimit(req);
+  if (limited) return limited;
+
   let body: unknown;
   try {
     body = await req.json();

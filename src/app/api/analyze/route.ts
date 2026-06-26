@@ -1,12 +1,16 @@
 import { streamText, Output } from "ai";
 import { getModel } from "@/lib/ai/provider";
 import { analysisSchema, analyzeRequestSchema, buildAnalysisPrompt } from "@/lib/ai/analysis";
+import { enforceAiRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 /** Stream a structured JD analysis (+ optional CV fit) as a partial-object stream. */
 export async function POST(req: Request) {
+  const limited = enforceAiRateLimit(req);
+  if (limited) return limited;
+
   let body: unknown;
   try {
     body = await req.json();
