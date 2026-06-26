@@ -26,6 +26,8 @@ const AI_ENV_KEYS = [
   "GROQ_MODEL",
   "TOGETHER_API_KEY",
   "TOGETHER_MODEL",
+  "NINEROUTER_BASE_URL",
+  "NINEROUTER_MODEL",
 ] as const;
 
 describe("AI provider configuration", () => {
@@ -75,6 +77,14 @@ describe("AI provider configuration", () => {
     expect(getActiveProviderInfo("ollama")).toEqual({ provider: "ollama", model: "llama3.1" });
   });
 
+  it("builds a keyless 9Router model (local OpenAI-compatible router)", () => {
+    expect(getModel("ninerouter")).toBeDefined();
+    expect(getActiveProviderInfo("ninerouter")).toEqual({
+      provider: "ninerouter",
+      model: "gpt-4o-mini",
+    });
+  });
+
   it("requires a key for OpenRouter and builds one when present", () => {
     expect(() => getModel("openrouter")).toThrow(/OPENROUTER_API_KEY/);
     process.env.OPENROUTER_API_KEY = "sk-or-test";
@@ -106,7 +116,9 @@ describe("streamRequestSchema", () => {
   });
 
   it("rejects an unregistered provider", () => {
-    expect(streamRequestSchema.safeParse({ prompt: "hi", provider: "mistral" }).success).toBe(false);
+    expect(streamRequestSchema.safeParse({ prompt: "hi", provider: "mistral" }).success).toBe(
+      false,
+    );
   });
 
   it("accepts a valid request with an optional provider override", () => {

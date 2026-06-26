@@ -3,7 +3,16 @@ import { PROVIDER_IDS, PROVIDERS, isProviderId } from "./providers";
 describe("provider registry", () => {
   it("registers every supported provider", () => {
     expect([...PROVIDER_IDS].sort()).toEqual(
-      ["anthropic", "groq", "local", "ollama", "openai", "openrouter", "together"].sort(),
+      [
+        "anthropic",
+        "groq",
+        "local",
+        "ninerouter",
+        "ollama",
+        "openai",
+        "openrouter",
+        "together",
+      ].sort(),
     );
   });
 

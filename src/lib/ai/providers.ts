@@ -90,6 +90,19 @@ const REGISTRY = {
     defaultModel: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
     modelEnv: "TOGETHER_MODEL",
   },
+  ninerouter: {
+    // 9Router (https://github.com/decolua/9router) — a local OpenAI-compatible
+    // router that fans out to 40+ providers with auto-fallback + RTK token saving.
+    // Keyless by default (runs on localhost); pick the routed model in the toggler.
+    id: "ninerouter",
+    label: "9Router",
+    kind: "openai-compatible",
+    baseUrl: "http://localhost:20128/v1",
+    needsKey: false,
+    defaultModel: "gpt-4o-mini",
+    modelEnv: "NINEROUTER_MODEL",
+    baseUrlEnv: "NINEROUTER_BASE_URL",
+  },
 } satisfies Record<string, ProviderSpec>;
 
 export type ProviderId = keyof typeof REGISTRY;
