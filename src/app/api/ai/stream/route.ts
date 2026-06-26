@@ -2,7 +2,7 @@ import { streamText } from "ai";
 import { getModel } from "@/lib/ai/provider";
 import { maybeCompressViaProxy } from "@/lib/ai/compress-proxy";
 import { streamRequestSchema } from "@/lib/ai/schemas";
-import { enforceAiRateLimit } from "@/lib/rate-limit";
+import { enforceAiRateLimit } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -33,10 +33,10 @@ export async function POST(req: Request) {
       system,
       prompt: finalPrompt,
     });
-    // ponytail: toTextStreamResponse() masks mid-stream provider errors as an
-    // empty stream. Fine for this backend primitive; switch to
-    // toUIMessageStreamResponse() (forwards errors via onError) when the
-    // streaming UI lands in Phase 2/3.
+    // A mid-stream provider error surfaces here as an empty stream rather than an
+    // error event. Acceptable for this raw text endpoint; switch to
+    // toUIMessageStreamResponse() (forwards errors via onError) if a caller needs
+    // to tell "empty" apart from "failed".
     return result.toTextStreamResponse();
   } catch (error) {
     const message = error instanceof Error ? error.message : "AI request failed";

@@ -5,7 +5,7 @@ export type ParsedImport = {
   errors: string[];
 };
 
-// ponytail: hand-rolled RFC-4180-ish CSV reader. Handles quoted fields,
+// hand-rolled RFC-4180-ish CSV reader. Handles quoted fields,
 // embedded commas/newlines, and "" escapes — enough for an exported job
 // tracker. Swap for a library only if users hit a real edge case.
 function splitCsvRows(text: string): string[][] {

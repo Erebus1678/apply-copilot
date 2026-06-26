@@ -48,4 +48,18 @@ describe("maybeCompressViaProxy", () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: false, json: async () => ({}) });
     await expect(maybeCompressViaProxy("keep me")).resolves.toBe("keep me");
   });
+
+  it("ignores a non-http(s) proxy URL without sending the prompt (SSRF guard)", async () => {
+    process.env.COMPRESS_PROXY_URL = "file:///etc/passwd";
+    global.fetch = jest.fn();
+    await expect(maybeCompressViaProxy("secret prompt")).resolves.toBe("secret prompt");
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("ignores a malformed proxy URL", async () => {
+    process.env.COMPRESS_PROXY_URL = "not a url";
+    global.fetch = jest.fn();
+    await expect(maybeCompressViaProxy("secret prompt")).resolves.toBe("secret prompt");
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
 });

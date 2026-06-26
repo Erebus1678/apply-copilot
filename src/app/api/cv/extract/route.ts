@@ -1,5 +1,5 @@
 import { CV_MAX_BYTES, cvKindFromName, extractCvText } from "@/lib/cv/extract";
-import { enforceAiRateLimit } from "@/lib/rate-limit";
+import { enforceAiRateLimit } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;

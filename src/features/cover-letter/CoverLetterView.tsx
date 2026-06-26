@@ -55,7 +55,7 @@ export function CoverLetterView() {
       await navigator.clipboard.writeText(completion);
       setCopied(true);
     } catch {
-      // ponytail: best-effort copy — clipboard can reject (denied permission,
+      // best-effort copy — clipboard can reject (denied permission,
       // non-secure context). The draft stays selectable, so we just no-op.
     }
   }

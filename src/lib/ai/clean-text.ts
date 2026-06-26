@@ -1,7 +1,7 @@
 // Deterministic post-processing for AI-generated prose (e.g. cover letters).
 // Strips the artifacts a prompt can't reliably suppress — meta preambles, code
 // fences, stray markdown, and whitespace noise — without rewriting sentences.
-// ponytail: formatting de-slop only; rewording clichés safely needs the model,
+// formatting de-slop only; rewording clichés safely needs the model,
 // not a regex, so that stays a prompt concern.
 export function cleanAiText(text: string): string {
   let out = text.replace(/\r\n/g, "\n");

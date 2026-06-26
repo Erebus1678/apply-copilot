@@ -2,7 +2,7 @@ import { streamText, Output } from "ai";
 import { getModel } from "@/lib/ai/provider";
 import { buildCvReviewPrompt, cvReviewRequestSchema, cvReviewSchema } from "@/lib/ai/cv-review";
 import { maybeCompressViaProxy } from "@/lib/ai/compress-proxy";
-import { enforceAiRateLimit } from "@/lib/rate-limit";
+import { enforceAiRateLimit } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;

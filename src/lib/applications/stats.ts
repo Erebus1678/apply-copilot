@@ -12,7 +12,7 @@ export type ApplicationStats = {
   avgFitScore: number | null;
 };
 
-// ponytail: stats are derived from current status only — there's no history
+// stats are derived from current status only — there's no history
 // table, so a rejected app that once interviewed reads as "rejected". Honest
 // for a personal tracker; add stage history if real funnel rates are needed.
 export function computeApplicationStats(apps: readonly Application[]): ApplicationStats {

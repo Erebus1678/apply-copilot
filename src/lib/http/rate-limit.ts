@@ -4,8 +4,10 @@ const buckets = new Map<string, Bucket>();
 
 export type RateLimitResult = { ok: boolean; retryAfter: number };
 
-// ponytail: in-memory fixed-window limiter — per-instance only. Fine for a
-// single-node deploy; swap for @upstash/ratelimit (Redis) if it ever scales out.
+// In-memory fixed-window limiter — per-instance only. Fine for a single-node
+// deploy; swap for @upstash/ratelimit (Redis) if it ever scales out. NOTE: keyed
+// by client IP from x-forwarded-for, which is only trustworthy behind a proxy you
+// control — on a future multi-tenant SaaS, key by authenticated user instead.
 export function rateLimit(key: string, limit: number, windowMs: number): RateLimitResult {
   const now = Date.now();
 

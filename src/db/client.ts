@@ -38,7 +38,7 @@ function makeDb(): { db: PostgresJsDatabase<Schema>; ready: Promise<unknown> } {
   // Cache the instance + migration promise globally (idempotent) so a hot-reload or
   // a re-import never spins up a second PGlite or re-runs migrations.
   globalForDb.dbReady = ready;
-  // ponytail: PGlite and postgres-js return slightly different drizzle types but
+  // PGlite and postgres-js return slightly different drizzle types but
   // share drizzle's identical pg query API; cast unifies the type for callers.
   return { db: pgliteDb as unknown as PostgresJsDatabase<Schema>, ready };
 }
