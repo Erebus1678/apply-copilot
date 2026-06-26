@@ -14,10 +14,18 @@ const AI_ENV_KEYS = [
   "AI_PROVIDER",
   "LOCAL_AI_BASE_URL",
   "LOCAL_AI_MODEL",
+  "OLLAMA_BASE_URL",
+  "OLLAMA_MODEL",
   "OPENAI_API_KEY",
   "OPENAI_MODEL",
   "ANTHROPIC_API_KEY",
   "ANTHROPIC_MODEL",
+  "OPENROUTER_API_KEY",
+  "OPENROUTER_MODEL",
+  "GROQ_API_KEY",
+  "GROQ_MODEL",
+  "TOGETHER_API_KEY",
+  "TOGETHER_MODEL",
 ] as const;
 
 describe("AI provider configuration", () => {
@@ -61,6 +69,22 @@ describe("AI provider configuration", () => {
     process.env.OPENAI_API_KEY = "sk-test";
     expect(getModel("openai")).toBeDefined();
   });
+
+  it("builds a keyless Ollama model from the registry", () => {
+    expect(getModel("ollama")).toBeDefined();
+    expect(getActiveProviderInfo("ollama")).toEqual({ provider: "ollama", model: "llama3.1" });
+  });
+
+  it("requires a key for OpenRouter and builds one when present", () => {
+    expect(() => getModel("openrouter")).toThrow(/OPENROUTER_API_KEY/);
+    process.env.OPENROUTER_API_KEY = "sk-or-test";
+    expect(getModel("openrouter")).toBeDefined();
+  });
+
+  it("honors a model override env var per provider", () => {
+    process.env.GROQ_MODEL = "llama-3.1-8b-instant";
+    expect(getActiveProviderInfo("groq").model).toBe("llama-3.1-8b-instant");
+  });
 });
 
 describe("streamRequestSchema", () => {
@@ -68,8 +92,12 @@ describe("streamRequestSchema", () => {
     expect(streamRequestSchema.safeParse({ prompt: "" }).success).toBe(false);
   });
 
-  it("rejects an unknown provider", () => {
-    expect(streamRequestSchema.safeParse({ prompt: "hi", provider: "groq" }).success).toBe(false);
+  it("accepts a now-registered provider like groq", () => {
+    expect(streamRequestSchema.safeParse({ prompt: "hi", provider: "groq" }).success).toBe(true);
+  });
+
+  it("rejects an unregistered provider", () => {
+    expect(streamRequestSchema.safeParse({ prompt: "hi", provider: "mistral" }).success).toBe(false);
   });
 
   it("accepts a valid request with an optional provider override", () => {

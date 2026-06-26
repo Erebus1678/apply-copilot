@@ -1,14 +1,9 @@
 "use client";
 
-import { PROVIDER_IDS, type ProviderId } from "@/lib/ai/config";
+import { PROVIDER_IDS } from "@/lib/ai/config";
+import { PROVIDERS } from "@/lib/ai/providers";
 import { cn } from "@/lib/utils";
 import { useProvider, setProvider } from "./useProviderStore";
-
-const LABELS: Record<ProviderId, string> = {
-  local: "Local",
-  openai: "OpenAI",
-  anthropic: "Anthropic",
-};
 
 export function ProviderSwitcher() {
   const active = useProvider();
@@ -32,7 +27,7 @@ export function ProviderSwitcher() {
               : "text-muted-foreground hover:text-foreground",
           )}
         >
-          {LABELS[id]}
+          {PROVIDERS[id].label}
         </button>
       ))}
     </div>
