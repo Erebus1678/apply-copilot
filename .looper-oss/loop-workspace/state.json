@@ -1,0 +1,36 @@
+{
+  "loop": "apply-copilot-oss-lan",
+  "current_iteration": 1,
+  "deliveries": [
+    {
+      "id": "pglite-db",
+      "status": "done",
+      "commit": "3daef74"
+    },
+    {
+      "id": "custom-provider",
+      "status": "pending",
+      "commit": null
+    },
+    {
+      "id": "local-profiles",
+      "status": "pending",
+      "commit": null
+    },
+    {
+      "id": "import-tracking",
+      "status": "pending",
+      "commit": null
+    },
+    {
+      "id": "lan-oss-docs",
+      "status": "pending",
+      "commit": null
+    }
+  ],
+  "use_case": "self-host on LAN, connect 9router (localhost:20128/v1), profiles per user, local PGlite DB",
+  "excluded": [
+    "saas",
+    "deploy"
+  ]
+}
