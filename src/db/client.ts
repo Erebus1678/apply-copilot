@@ -30,7 +30,9 @@ function makeDb(): { db: PostgresJsDatabase<Schema>; ready: Promise<unknown> } {
   // OSS default: embedded Postgres (PGlite), file-backed — zero external service.
   // Migrations run once on first boot from the committed ./drizzle folder. Resolve
   // it from cwd (absolute) so it works under standalone/Docker, not just the repo root.
-  const pglitePath = process.env.PGLITE_PATH ?? "./data/pgdata";
+  // `|| ` (not `??`) so an empty/whitespace PGLITE_PATH — e.g. the `PGLITE_PATH=`
+  // line shipped in .env.example — falls back to the default instead of "".
+  const pglitePath = process.env.PGLITE_PATH?.trim() || "./data/pgdata";
   // PGlite mkdir's the datadir non-recursively, so it ENOENTs on a fresh checkout
   // where ./data doesn't exist yet. Create the path ourselves so zero-config
   // `pnpm dev` works without any setup step.
