@@ -1,6 +1,6 @@
 {
   "loop": "apply-copilot-oss-lan",
-  "current_iteration": 1,
+  "current_iteration": 2,
   "deliveries": [
     {
       "id": "pglite-db",
@@ -9,8 +9,8 @@
     },
     {
       "id": "custom-provider",
-      "status": "pending",
-      "commit": null
+      "status": "done",
+      "commit": "b0367e8"
     },
     {
       "id": "local-profiles",
