@@ -10,6 +10,7 @@ jest.mock("next/link", () => ({
 }));
 
 import { fetchApplications } from "@/lib/applications/client";
+import { setActiveProfile } from "@/features/profile/useProfileStore";
 import { StatsView } from "./StatsView";
 
 const mockFetch = fetchApplications as jest.Mock;
@@ -31,7 +32,18 @@ function app(over: Partial<Application>): Application {
 }
 
 describe("StatsView", () => {
-  beforeEach(() => mockFetch.mockReset());
+  beforeEach(() => {
+    localStorage.clear();
+    setActiveProfile("p1");
+    mockFetch.mockReset();
+  });
+
+  it("prompts to pick a profile when none is active", () => {
+    setActiveProfile("");
+    render(<StatsView />);
+    expect(screen.getByText(/select your profile/i)).toBeInTheDocument();
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
 
   it("shows the empty state when there are no applications", async () => {
     mockFetch.mockResolvedValue([]);

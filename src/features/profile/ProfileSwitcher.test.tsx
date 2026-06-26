@@ -26,10 +26,20 @@ describe("ProfileSwitcher", () => {
     await waitFor(() => expect(localStorage.getItem("apply-copilot:profile")).toBe("p1"));
   });
 
+  it("does not auto-select when several profiles exist (requires a choice)", async () => {
+    mockFetch.mockResolvedValue([profile("p1", "Personal"), profile("p2", "Anna")]);
+    render(<ProfileSwitcher />);
+    // Button shows the neutral placeholder, and nothing is stored automatically —
+    // so a shared device doesn't land on someone else's profile.
+    expect(await screen.findByRole("button", { name: /profile/i })).toBeInTheDocument();
+    await waitFor(() => expect(mockFetch).toHaveBeenCalled());
+    expect(localStorage.getItem("apply-copilot:profile")).toBeNull();
+  });
+
   it("switches the active profile", async () => {
     mockFetch.mockResolvedValue([profile("p1", "Personal"), profile("p2", "Anna")]);
     render(<ProfileSwitcher />);
-    fireEvent.click(await screen.findByRole("button", { name: /personal/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /profile/i }));
     fireEvent.click(screen.getByRole("menuitemradio", { name: "Anna" }));
     await waitFor(() => expect(localStorage.getItem("apply-copilot:profile")).toBe("p2"));
   });

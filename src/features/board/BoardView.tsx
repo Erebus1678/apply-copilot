@@ -36,8 +36,9 @@ export function BoardView() {
   }, [profileId]);
 
   useEffect(() => {
+    if (!profileId) return; // no profile chosen yet — don't load anyone's data
     let active = true;
-    fetchApplications(profileId || undefined)
+    fetchApplications(profileId)
       .then((data) => active && setApps(data))
       .catch((e: unknown) => active && setError(e instanceof Error ? e.message : "Failed to load"))
       .finally(() => active && setLoading(false));
@@ -110,6 +111,14 @@ export function BoardView() {
       setApps(snapshot);
       setError("Could not delete application");
     }
+  }
+
+  if (!profileId) {
+    return (
+      <p className="text-muted-foreground text-sm">
+        Select your profile in the top-right to start tracking applications.
+      </p>
+    );
   }
 
   return (

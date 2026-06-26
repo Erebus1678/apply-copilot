@@ -15,8 +15,9 @@ export function StatsView() {
   const profileId = useActiveProfile();
 
   useEffect(() => {
+    if (!profileId) return; // no profile chosen yet — don't load anyone's data
     let active = true;
-    fetchApplications(profileId || undefined)
+    fetchApplications(profileId)
       .then((data) => active && setApps(data))
       .catch((e: unknown) => active && setError(e instanceof Error ? e.message : "Failed to load"))
       .finally(() => active && setLoading(false));
@@ -25,6 +26,12 @@ export function StatsView() {
     };
   }, [profileId]);
 
+  if (!profileId)
+    return (
+      <p className="text-muted-foreground text-sm">
+        Select your profile in the top-right to see your stats.
+      </p>
+    );
   if (loading) return <p className="text-muted-foreground text-sm">Loading your stats…</p>;
   if (error)
     return (

@@ -11,6 +11,7 @@ jest.mock("@/lib/applications/client", () => ({
 
 import { BoardView } from "./BoardView";
 import * as client from "@/lib/applications/client";
+import { setActiveProfile } from "@/features/profile/useProfileStore";
 
 const mocked = client as jest.Mocked<typeof client>;
 
@@ -41,7 +42,16 @@ function makeApp(over: Partial<Application>): Application {
 describe("BoardView", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    localStorage.clear();
+    setActiveProfile("p1");
     mocked.fetchApplications.mockResolvedValue([]);
+  });
+
+  it("prompts to pick a profile when none is active", () => {
+    setActiveProfile("");
+    render(<BoardView />);
+    expect(screen.getByText(/select your profile/i)).toBeInTheDocument();
+    expect(mocked.fetchApplications).not.toHaveBeenCalled();
   });
 
   it("renders applications returned from the API", async () => {

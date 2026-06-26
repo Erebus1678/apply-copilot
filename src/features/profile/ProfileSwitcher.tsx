@@ -27,11 +27,16 @@ export function ProfileSwitcher() {
     };
   }, []);
 
-  // Reconcile: if the active id isn't a known profile, fall back to the first.
+  // Reconcile the active profile against the loaded list. Auto-pick ONLY when
+  // there's a single profile (no ambiguity) — with several, require an explicit
+  // choice so a shared device (e.g. on a LAN) doesn't silently open someone
+  // else's profile. A stale id (deleted profile) is cleared so the user re-picks.
+  // The choice is remembered per device via localStorage in useProfileStore.
   useEffect(() => {
-    if (profiles.length > 0 && !profiles.some((p) => p.id === active)) {
-      setActiveProfile(profiles[0].id);
-    }
+    if (profiles.length === 0) return;
+    if (profiles.some((p) => p.id === active)) return;
+    if (profiles.length === 1) setActiveProfile(profiles[0].id);
+    else if (active) setActiveProfile("");
   }, [profiles, active]);
 
   useEffect(() => {
