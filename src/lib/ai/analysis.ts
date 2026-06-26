@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PROVIDER_IDS } from "./config";
+import { providerOverrideFields } from "./override";
 
 export const SENIORITY_LEVELS = ["junior", "mid", "senior", "staff", "lead", "principal"] as const;
 
@@ -44,7 +44,7 @@ export type Analysis = z.infer<typeof analysisSchema>;
 export const analyzeRequestSchema = z.object({
   jd: z.string().min(20, "Paste a fuller job description").max(20_000),
   cv: z.string().max(20_000).optional(),
-  provider: z.enum(PROVIDER_IDS).optional(),
+  ...providerOverrideFields,
 });
 
 export type AnalyzeRequest = z.infer<typeof analyzeRequestSchema>;

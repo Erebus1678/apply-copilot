@@ -23,10 +23,10 @@ export async function POST(req: Request) {
     return Response.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { prompt, system, provider } = parsed.data;
+  const { prompt, system, provider, apiKey, model } = parsed.data;
 
   try {
-    const result = streamText({ model: getModel(provider), system, prompt });
+    const result = streamText({ model: getModel({ provider, apiKey, model }), system, prompt });
     // ponytail: toTextStreamResponse() masks mid-stream provider errors as an
     // empty stream. Fine for this backend primitive; switch to
     // toUIMessageStreamResponse() (forwards errors via onError) when the

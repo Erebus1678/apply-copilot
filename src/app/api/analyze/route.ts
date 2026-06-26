@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
   try {
     const result = streamText({
-      model: getModel(parsed.data.provider),
+      model: getModel(parsed.data),
       output: Output.object({ schema: analysisSchema }),
       system,
       prompt,

@@ -85,6 +85,15 @@ describe("AI provider configuration", () => {
     process.env.GROQ_MODEL = "llama-3.1-8b-instant";
     expect(getActiveProviderInfo("groq").model).toBe("llama-3.1-8b-instant");
   });
+
+  it("builds a cloud model from a per-request BYO key with no env key", () => {
+    expect(() => getModel({ provider: "openai" })).toThrow(/OPENAI_API_KEY/);
+    expect(getModel({ provider: "openai", apiKey: "sk-byo" })).toBeDefined();
+  });
+
+  it("reflects a per-request model override in the reported info", () => {
+    expect(getActiveProviderInfo({ provider: "openai", model: "gpt-4o" }).model).toBe("gpt-4o");
+  });
 });
 
 describe("streamRequestSchema", () => {

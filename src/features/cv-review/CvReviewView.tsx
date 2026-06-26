@@ -7,12 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { cvReviewSchema } from "@/lib/ai/cv-review";
 import { loadCv, saveCv } from "@/lib/cv-storage";
 import { CvUpload } from "@/features/cv/CvUpload";
-import { useProvider } from "@/features/provider/useProviderStore";
+import { overrideFor, useProvider, useProviderConfig } from "@/features/provider/useProviderStore";
 import { CvReviewResult } from "./CvReviewResult";
 
 export function CvReviewView() {
   const cvRef = useRef<HTMLTextAreaElement>(null);
   const provider = useProvider();
+  const providerConfig = useProviderConfig();
   const { object, submit, stop, isLoading, error } = useObject({
     api: "/api/cv-review",
     schema: cvReviewSchema,
@@ -32,7 +33,7 @@ export function CvReviewView() {
     event.preventDefault();
     const cv = cvRef.current?.value.trim() ?? "";
     if (cv.length < 50) return;
-    submit({ cv, provider });
+    submit({ cv, ...overrideFor(provider, providerConfig) });
   }
 
   return (

@@ -8,7 +8,7 @@ import { StreamingIndicator } from "@/components/streaming-indicator";
 import { cleanAiText } from "@/lib/ai/clean-text";
 import { loadCv, saveCv } from "@/lib/cv-storage";
 import { CvUpload } from "@/features/cv/CvUpload";
-import { useProvider } from "@/features/provider/useProviderStore";
+import { overrideFor, useProvider, useProviderConfig } from "@/features/provider/useProviderStore";
 
 export function CoverLetterView() {
   const [jd, setJd] = useState("");
@@ -16,6 +16,7 @@ export function CoverLetterView() {
   const [copied, setCopied] = useState(false);
   const cvRef = useRef<HTMLTextAreaElement>(null);
   const provider = useProvider();
+  const providerConfig = useProviderConfig();
 
   const { completion, complete, setCompletion, isLoading, stop, error } = useCompletion({
     api: "/api/cover-letter",
@@ -45,7 +46,7 @@ export function CoverLetterView() {
     }
     setCvError("");
     setCopied(false);
-    void complete("", { body: { jd: jd.trim(), cv, provider } });
+    void complete("", { body: { jd: jd.trim(), cv, ...overrideFor(provider, providerConfig) } });
   }
 
   async function handleCopy() {

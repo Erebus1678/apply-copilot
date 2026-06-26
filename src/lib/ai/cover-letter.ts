@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { PROVIDER_IDS } from "./config";
+import { providerOverrideFields } from "./override";
 
 export const coverLetterRequestSchema = z.object({
   jd: z.string().min(20, "Paste a fuller job description").max(20_000),
   cv: z.string().min(20, "Add your CV to ground the letter").max(20_000),
-  provider: z.enum(PROVIDER_IDS).optional(),
+  ...providerOverrideFields,
 });
 
 export type CoverLetterRequest = z.infer<typeof coverLetterRequestSchema>;

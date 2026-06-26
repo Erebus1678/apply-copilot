@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PROVIDER_IDS } from "./config";
+import { providerOverrideFields } from "./override";
 
 export const CV_ISSUE_CATEGORIES = ["ats", "content", "clarity", "spelling", "formatting"] as const;
 
@@ -29,7 +29,7 @@ export type CvReview = z.infer<typeof cvReviewSchema>;
 /** Input contract for the CV review endpoint. */
 export const cvReviewRequestSchema = z.object({
   cv: z.string().min(50, "Paste a fuller CV").max(20_000),
-  provider: z.enum(PROVIDER_IDS).optional(),
+  ...providerOverrideFields,
 });
 
 export type CvReviewRequest = z.infer<typeof cvReviewRequestSchema>;
