@@ -43,6 +43,11 @@ yarn-error.log*
 /blob-report/
 /playwright/.cache/
 
+# internal loop tooling (not part of the app)
+/.looper
+/.looper-oss
+/.looper-providers
+
 # vercel
 .vercel
 

@@ -50,6 +50,11 @@ provider can also be selected per session in the header, where you can paste a
 **bring-your-own key** and pick a **model** (both stored on your device only). A
 status dot shows whether each provider is reachable (local) or has a key (cloud).
 
+The **model** values below are just sensible **defaults** — set the `*_MODEL` env
+to change the default, or pick any model in the header per device. You're not
+locked to these. One exception: for local servers (LM Studio / Ollama / 9Router)
+the id must match exactly what the server reports (e.g. `qwen/qwen3-coder-30b`).
+
 | Provider   | `AI_PROVIDER` | Key env              | Base URL env / default                           | Model env / default                                          |
 | ---------- | ------------- | -------------------- | ------------------------------------------------ | ------------------------------------------------------------ |
 | LM Studio  | `local`       | — (none)             | `LOCAL_AI_BASE_URL` · `http://localhost:1234/v1` | `LOCAL_AI_MODEL` · `qwen/qwen3-coder-30b`                    |
@@ -138,15 +143,6 @@ Generate/apply the schema with `pnpm db:generate` / `pnpm db:migrate`.
 - **Core Web Vitals** — Lighthouse CI runs on every push (`lighthouserc.json`) and watches LCP ≤ 2.5s, CLS ≤ 0.1, TBT ≤ 200ms, FCP ≤ 1.5s.
 - **Coverage** — Jest enforces ≥ 80% statements/lines on application logic (integration boundaries are covered by Playwright + live checks).
 - **Rate limiting** — the AI endpoints are IP-rate-limited (in-memory, 20 req/min).
-
-## Build phases
-
-- [x] **0 — Scaffold:** Next.js, Tailwind tokens, design system, Storybook, Jest, Playwright, CI, Docker
-- [x] **1 — AI provider layer:** streaming, provider-agnostic (local / OpenAI / Anthropic), typed I/O schemas
-- [x] **2 — JD analysis:** extract tech / seniority / archetype + fit + gaps (structured streaming)
-- [x] **3 — Cover letter:** streaming draft, anti-slop
-- [x] **4 — Pipeline board:** CRUD + Postgres persistence + statuses
-- [~] **5 — Polish:** provider-switch UI ✓ · design system ✓ · a11y (axe) ✓ · ≥80% coverage ✓ · Lighthouse CI ✓ · rate limiting ✓ — deploy + demo remaining
 
 ## Editions (OSS vs SaaS)
 
