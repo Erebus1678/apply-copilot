@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeading } from "@/components/page-heading";
 import { CoverLetterView } from "@/features/cover-letter/CoverLetterView";
 
 export const metadata: Metadata = {
@@ -8,13 +9,10 @@ export const metadata: Metadata = {
 export default function CoverLetterPage() {
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-16">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-semibold tracking-tight">Draft a cover letter</h1>
-        <p className="text-muted-foreground max-w-2xl text-pretty">
-          A tailored letter grounded strictly in your CV and the role — streamed live, editable, and
-          free of the usual AI clichés.
-        </p>
-      </header>
+      <PageHeading eyebrow="03 · Draft" title="Draft a cover letter">
+        A tailored letter grounded strictly in your CV and the role — streamed live, editable, and
+        free of the usual AI clichés.
+      </PageHeading>
       <CoverLetterView />
     </main>
   );
