@@ -116,7 +116,7 @@ export function BoardView() {
       )}
 
       {loading ? (
-        <p className="text-muted-foreground text-sm">Loading your pipeline…</p>
+        <p className="text-muted-foreground text-sm">Loading your job tracker…</p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {APPLICATION_STATUSES.map((status) => {

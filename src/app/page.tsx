@@ -22,7 +22,7 @@ const steps = [
     href: "/cover-letter",
     desc: "A tailored cover letter, streamed, no slop.",
   },
-  { n: "04", label: "Track", href: "/board", desc: "Every role on one persistent pipeline board." },
+  { n: "04", label: "Track", href: "/board", desc: "Every role on one persistent job tracker." },
 ];
 
 export default function Home() {
@@ -62,7 +62,7 @@ export default function Home() {
               href="/board"
               className="text-muted-foreground hover:text-foreground font-mono text-sm transition-colors"
             >
-              View the pipeline →
+              Open the job tracker →
             </Link>
           </div>
         </div>

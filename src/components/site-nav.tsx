@@ -9,7 +9,7 @@ import { ThemeToggle } from "@/features/theme/ThemeToggle";
 const links = [
   { href: "/analyze", label: "Analyze" },
   { href: "/cover-letter", label: "Cover letter" },
-  { href: "/board", label: "Pipeline" },
+  { href: "/board", label: "Job Tracker" },
 ];
 
 export function SiteNav() {
