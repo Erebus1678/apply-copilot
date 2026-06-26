@@ -1,0 +1,13 @@
+# Generated / vendored
+pnpm-lock.yaml
+drizzle/meta/
+coverage/
+.next/
+node_modules/
+storybook-static/
+playwright-report/
+
+# Internal loop tooling (not part of the application)
+.looper/
+.looper-oss/
+.looper-providers/

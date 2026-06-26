@@ -15,7 +15,8 @@ jest.mock("@/lib/cv/client", () => ({ uploadCv: jest.fn() }));
 
 import { CvReviewView } from "./CvReviewView";
 
-const longCv = "Senior frontend engineer with eight years of React, TypeScript, and AWS experience.";
+const longCv =
+  "Senior frontend engineer with eight years of React, TypeScript, and AWS experience.";
 
 describe("CvReviewView", () => {
   beforeEach(() => {

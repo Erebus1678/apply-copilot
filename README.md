@@ -148,15 +148,24 @@ Generate/apply the schema with `pnpm db:generate` / `pnpm db:migrate`.
 - [x] **4 — Pipeline board:** CRUD + Postgres persistence + statuses
 - [~] **5 — Polish:** provider-switch UI ✓ · design system ✓ · a11y (axe) ✓ · ≥80% coverage ✓ · Lighthouse CI ✓ · rate limiting ✓ — deploy + demo remaining
 
-## SaaS (future)
+## Editions (OSS vs SaaS)
 
-The provider-agnostic core is deliberately a foundation for a hosted offering:
-one operator funds tokens (e.g. via an OpenRouter key) and users pay for a
-zero-setup experience. That layer — auth, billing, usage metering, and
-server-held keys — is a **separate epic**, intentionally out of scope here. The
-current code already supports the building blocks: a server-side key per provider
-(env) today, swappable for per-tenant keys later, plus the compress proxy hook to
-cap token cost. Self-hosting stays first-class either way.
+This is the **open-source edition** — local-first, self-hostable, no account
+required. A hosted SaaS edition is planned as a thin, env-gated layer on the
+**same codebase** (shared Postgres, accounts, operator-funded tokens, billing) —
+never a fork. The seams already exist: the `DATABASE_URL` dual driver, the
+`profileId` tenancy column, and server-side per-provider keys. See
+**[EDITIONS.md](EDITIONS.md)** for the full decision record.
+
+## Contributing
+
+Issues and PRs welcome — see **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup and
+the checks CI runs, and **[CHANGELOG.md](CHANGELOG.md)** for what's shipped.
+
+## Screenshots
+
+> _TODO: add a short demo GIF and a couple of screenshots (board, analyze) under
+> `docs/`._ Capture locally with `pnpm dev`, then drop them here.
 
 ## License
 

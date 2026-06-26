@@ -1,0 +1,47 @@
+name: Bug report
+description: Something isn't working as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+      placeholder: Steps to reproduce, expected vs actual.
+    validations:
+      required: true
+  - type: dropdown
+    id: edition
+    attributes:
+      label: How are you running it?
+      options:
+        - Local dev (pnpm dev)
+        - Docker (docker compose up)
+        - Production build (pnpm build && pnpm start)
+    validations:
+      required: true
+  - type: dropdown
+    id: database
+    attributes:
+      label: Database
+      options:
+        - Embedded PGlite (default)
+        - Postgres (DATABASE_URL set)
+    validations:
+      required: true
+  - type: input
+    id: provider
+    attributes:
+      label: AI provider (if relevant)
+      placeholder: local / ollama / openai / anthropic / openrouter / groq / together / ninerouter
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      placeholder: git short SHA or release tag
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / errors
+      description: Console or server output. Redact any keys.
+      render: shell
