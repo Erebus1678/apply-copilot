@@ -1,6 +1,6 @@
 {
   "loop": "apply-copilot-backlog",
-  "current_iteration": 2,
+  "current_iteration": 6,
   "active_feature": null,
   "backlog": [
     {
@@ -15,22 +15,22 @@
     },
     {
       "id": "statistics",
-      "status": "pending",
-      "commit": null
+      "status": "done",
+      "commit": "HEAD"
     },
     {
       "id": "ai-text-postprocess",
-      "status": "pending",
+      "status": "done",
       "commit": null
     },
     {
       "id": "design-polish",
-      "status": "pending",
+      "status": "done",
       "commit": null
     },
     {
       "id": "self-host",
-      "status": "pending",
+      "status": "done",
       "commit": null
     }
   ],
