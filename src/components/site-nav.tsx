@@ -11,6 +11,7 @@ const links = [
   { href: "/cv", label: "CV check" },
   { href: "/cover-letter", label: "Cover letter" },
   { href: "/board", label: "Job Tracker" },
+  { href: "/stats", label: "Stats" },
 ];
 
 export function SiteNav() {
