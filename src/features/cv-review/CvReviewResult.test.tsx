@@ -14,6 +14,11 @@ describe("CvReviewResult", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("provider down");
   });
 
+  it("shows a streaming indicator while loading", () => {
+    render(<CvReviewResult review={undefined} isLoading error={undefined} />);
+    expect(screen.getByRole("status")).toHaveTextContent(/checking/i);
+  });
+
   it("renders score, summary, issues, and strengths", () => {
     render(
       <CvReviewResult

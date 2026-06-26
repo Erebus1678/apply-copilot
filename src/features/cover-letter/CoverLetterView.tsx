@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCompletion } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { StreamingIndicator } from "@/components/streaming-indicator";
 import { cleanAiText } from "@/lib/ai/clean-text";
 import { loadCv, saveCv } from "@/lib/cv-storage";
 import { CvUpload } from "@/features/cv/CvUpload";
@@ -118,7 +119,10 @@ export function CoverLetterView() {
 
       <div className="lg:border-border flex flex-col gap-3 lg:border-l lg:pl-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Draft</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-sm font-semibold">Draft</h2>
+            {isLoading && <StreamingIndicator label="Drafting…" />}
+          </div>
           {completion && !isLoading && (
             <Button type="button" variant="ghost" size="sm" onClick={handleCopy}>
               {copied ? "Copied" : "Copy"}

@@ -1,6 +1,7 @@
 import type { DeepPartial } from "ai";
 import { Badge } from "@/components/ui/badge";
 import { ScoreRing } from "@/components/score-ring";
+import { StreamingIndicator } from "@/components/streaming-indicator";
 import type { CvReview } from "@/lib/ai/cv-review";
 
 const SEVERITY_VARIANT = {
@@ -46,6 +47,7 @@ export function CvReviewResult({ review, isLoading, error }: Props) {
 
   return (
     <div className="flex flex-col gap-6" aria-busy={isLoading} aria-live="polite">
+      {isLoading && <StreamingIndicator label="Checking…" />}
       <div className="flex items-center gap-4">
         {typeof review?.atsScore === "number" && (
           <ScoreRing score={review.atsScore} label="ATS-friendliness score" />

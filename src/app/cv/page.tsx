@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function CvPage() {
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-16">
+    <main className="reveal mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-16">
       <PageHeading eyebrow="Résumé · CV check" title="Is your CV ATS-ready?">
         Get an ATS-friendliness score, the concrete things to fix (including spelling), and what
         your CV already does well — streamed, and grounded only in what you paste.

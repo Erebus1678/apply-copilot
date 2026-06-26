@@ -57,7 +57,10 @@ export function StatsView() {
         aria-label="Key metrics"
       >
         {cards.map((c) => (
-          <div key={c.label} className="border-border flex flex-col gap-1 rounded-lg border p-4">
+          <div
+            key={c.label}
+            className="border-border lift flex flex-col gap-1 rounded-lg border p-4"
+          >
             <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
               {c.label}
             </span>

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function StatsPage() {
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-16">
+    <main className="reveal mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-16">
       <PageHeading eyebrow="Pipeline · Stats" title="Your application stats">
         A read-only snapshot of your pipeline — totals, offer rate, average fit, and how your
         applications are distributed across stages.

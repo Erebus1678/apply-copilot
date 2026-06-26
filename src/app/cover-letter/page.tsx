@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function CoverLetterPage() {
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-16">
+    <main className="reveal mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-16">
       <PageHeading eyebrow="03 · Draft" title="Draft a cover letter">
         A tailored letter grounded strictly in your CV and the role — streamed live, editable, and
         free of the usual AI clichés.

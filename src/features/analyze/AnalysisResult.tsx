@@ -1,6 +1,7 @@
 import type { DeepPartial } from "ai";
 import { Badge } from "@/components/ui/badge";
 import { ScoreRing } from "@/components/score-ring";
+import { StreamingIndicator } from "@/components/streaming-indicator";
 import type { Analysis } from "@/lib/ai/analysis";
 
 const SEVERITY_VARIANT = {
@@ -38,6 +39,7 @@ export function AnalysisResult({ analysis, isLoading, error }: Props) {
 
   return (
     <div className="flex flex-col gap-6" aria-busy={isLoading} aria-live="polite">
+      {isLoading && <StreamingIndicator label="Analyzing…" />}
       <div className="flex flex-wrap items-center gap-3">
         {analysis?.seniority && (
           <Badge variant="primary" className="capitalize">
