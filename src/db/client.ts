@@ -1,3 +1,4 @@
+import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
@@ -29,7 +30,12 @@ function makeDb(): { db: PostgresJsDatabase<Schema>; ready: Promise<unknown> } {
   // OSS default: embedded Postgres (PGlite), file-backed — zero external service.
   // Migrations run once on first boot from the committed ./drizzle folder. Resolve
   // it from cwd (absolute) so it works under standalone/Docker, not just the repo root.
-  const pg = globalForDb.pglite ?? new PGlite(process.env.PGLITE_PATH ?? "./data/pgdata");
+  const pglitePath = process.env.PGLITE_PATH ?? "./data/pgdata";
+  // PGlite mkdir's the datadir non-recursively, so it ENOENTs on a fresh checkout
+  // where ./data doesn't exist yet. Create the path ourselves so zero-config
+  // `pnpm dev` works without any setup step.
+  mkdirSync(pglitePath, { recursive: true });
+  const pg = globalForDb.pglite ?? new PGlite(pglitePath);
   globalForDb.pglite = pg;
   const pgliteDb = drizzlePglite(pg, { schema });
   const ready =
