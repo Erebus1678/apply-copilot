@@ -16,6 +16,14 @@ export async function createApplication(input: CreateApplicationInput): Promise<
   return row;
 }
 
+export async function createManyApplications(
+  inputs: CreateApplicationInput[],
+): Promise<Application[]> {
+  await dbReady;
+  if (inputs.length === 0) return [];
+  return db.insert(applications).values(inputs).returning();
+}
+
 export async function updateApplication(
   id: string,
   patch: UpdateApplicationInput,

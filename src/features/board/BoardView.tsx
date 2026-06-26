@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Application } from "@/db/schema";
@@ -8,8 +8,10 @@ import {
   createApplication,
   deleteApplication,
   fetchApplications,
+  importApplications,
   patchApplication,
 } from "@/lib/applications/client";
+import { parseImportFile } from "@/lib/applications/import";
 import {
   APPLICATION_STATUSES,
   STATUS_LABELS,
@@ -25,7 +27,13 @@ export function BoardView() {
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
   const [adding, setAdding] = useState(false);
+  const [importMsg, setImportMsg] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const profileId = useActiveProfile();
+  const profileIdRef = useRef(profileId);
+  useEffect(() => {
+    profileIdRef.current = profileId;
+  }, [profileId]);
 
   useEffect(() => {
     let active = true;
@@ -57,6 +65,26 @@ export function BoardView() {
       setError(e instanceof Error ? e.message : "Failed to add application");
     } finally {
       setAdding(false);
+    }
+  }
+
+  async function handleImportFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = ""; // let the same file be re-selected
+    if (!file) return;
+    setError("");
+    setImportMsg("");
+    try {
+      const { rows, errors } = parseImportFile(await file.text(), file.name);
+      if (rows.length === 0) {
+        setError(errors[0] ?? "No valid applications found in that file");
+        return;
+      }
+      const created = await importApplications(rows, profileIdRef.current || undefined);
+      setApps((prev) => [...created, ...prev]);
+      setImportMsg(`Imported ${created.length}${errors.length ? `, skipped ${errors.length}` : ""}.`);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Import failed");
     }
   }
 
@@ -107,14 +135,33 @@ export function BoardView() {
             placeholder="Senior Frontend Engineer"
           />
         </div>
-        <Button type="submit" disabled={adding || !company.trim() || !role.trim()}>
-          {adding ? "Adding…" : "Add"}
-        </Button>
+        <div className="flex gap-2">
+          <Button type="submit" disabled={adding || !company.trim() || !role.trim()}>
+            {adding ? "Adding…" : "Add"}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+            Import
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,.json,text/csv,application/json"
+            onChange={handleImportFile}
+            className="hidden"
+            aria-label="Import applications from a CSV or JSON file"
+          />
+        </div>
       </form>
 
       {error && (
         <p className="text-destructive text-sm" role="alert">
           {error}
+        </p>
+      )}
+
+      {importMsg && (
+        <p className="text-muted-foreground text-sm" role="status">
+          {importMsg}
         </p>
       )}
 

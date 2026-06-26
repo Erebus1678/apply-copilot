@@ -26,6 +26,19 @@ export async function createApplication(input: CreateApplicationInput): Promise<
   return body.data;
 }
 
+export async function importApplications(
+  rows: CreateApplicationInput[],
+  profileId?: string,
+): Promise<Application[]> {
+  const res = await fetch("/api/applications/import", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ profileId, applications: rows }),
+  });
+  const body = await parseOrThrow<{ data: Application[] }>(res);
+  return body.data;
+}
+
 export async function patchApplication(
   id: string,
   patch: UpdateApplicationInput,
