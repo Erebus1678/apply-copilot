@@ -1,54 +1,7 @@
 import type { DeepPartial } from "ai";
 import { Badge } from "@/components/ui/badge";
+import { ScoreRing } from "@/components/score-ring";
 import type { Analysis } from "@/lib/ai/analysis";
-
-type SeverityBadge = "success" | "warning" | "destructive";
-
-function scoreTone(score: number): SeverityBadge {
-  if (score >= 70) return "success";
-  if (score >= 45) return "warning";
-  return "destructive";
-}
-
-const TONE_STROKE: Record<SeverityBadge, string> = {
-  success: "var(--success)",
-  warning: "var(--warning)",
-  destructive: "var(--destructive)",
-};
-
-function ScoreRing({ score }: { score: number }) {
-  const clamped = Math.max(0, Math.min(100, Math.round(score)));
-  const radius = 34;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - clamped / 100);
-  const tone = scoreTone(clamped);
-  return (
-    <div
-      className="relative size-24 shrink-0"
-      role="img"
-      aria-label={`CV fit score: ${clamped} out of 100`}
-    >
-      <svg viewBox="0 0 80 80" className="size-24 -rotate-90" aria-hidden="true">
-        <circle cx="40" cy="40" r={radius} fill="none" stroke="var(--muted)" strokeWidth="8" />
-        <circle
-          cx="40"
-          cy="40"
-          r={radius}
-          fill="none"
-          stroke={TONE_STROKE[tone]}
-          strokeWidth="8"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          className="transition-[stroke-dashoffset] duration-500 ease-out"
-        />
-      </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-2xl font-semibold tabular-nums">
-        {clamped}
-      </span>
-    </div>
-  );
-}
 
 const SEVERITY_VARIANT = {
   minor: "default",
@@ -127,7 +80,9 @@ export function AnalysisResult({ analysis, isLoading, error }: Props) {
       {fit && (
         <section className="border-border flex flex-col gap-4 rounded-lg border p-4">
           <div className="flex items-center gap-4">
-            {typeof fit.score === "number" && <ScoreRing score={fit.score} />}
+            {typeof fit.score === "number" && (
+              <ScoreRing score={fit.score} label="CV fit score" />
+            )}
             <div className="flex flex-col gap-1">
               <h3 className="text-sm font-semibold">CV fit</h3>
               {fit.summary && <p className="text-muted-foreground text-sm">{fit.summary}</p>}
