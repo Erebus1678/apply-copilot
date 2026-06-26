@@ -1,0 +1,53 @@
+# Self-hosted Apply Copilot: the app + a local Postgres, fully on your machine.
+# By default the AI runs against an LM Studio server on the host (nothing leaves
+# your machine). Set OPENAI/ANTHROPIC keys in .env to use a cloud provider instead.
+#
+#   1. cp .env.example .env   (set AI_PROVIDER / keys; DB urls are wired below)
+#   2. docker compose up -d --build
+#   3. pnpm install && pnpm db:migrate   (one-time, from the host; db is on :5432)
+#   4. open http://localhost:3000
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: apply
+      POSTGRES_PASSWORD: apply
+      POSTGRES_DB: apply_copilot
+    ports:
+      # Bound to localhost only so the DB (default creds) isn't reachable from the
+      # LAN — enough for `pnpm db:migrate` from the host. Change creds before any
+      # non-local exposure.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apply -d apply_copilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      AI_PROVIDER: ${AI_PROVIDER:-local}
+      # Reach an LM Studio (or any OpenAI-compatible server) running on the host.
+      LOCAL_AI_BASE_URL: ${LOCAL_AI_BASE_URL:-http://host.docker.internal:1234/v1}
+      LOCAL_AI_MODEL: ${LOCAL_AI_MODEL:-qwen/qwen3-coder-30b}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-6}
+      DATABASE_URL: postgres://apply:apply@db:5432/apply_copilot
+      DIRECT_URL: postgres://apply:apply@db:5432/apply_copilot
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # Linux: resolve the host machine
+
+volumes:
+  db-data:

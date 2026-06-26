@@ -43,6 +43,22 @@ pnpm dev                      # http://localhost:3000
 | `pnpm e2e`                                | Playwright end-to-end    |
 | `pnpm storybook` / `pnpm build-storybook` | Component workshop       |
 
+## Self-hosting
+
+Run the whole thing on your own machine — app plus Postgres — with Docker:
+
+```bash
+cp .env.example .env          # pick AI_PROVIDER; DB urls are wired in compose
+docker compose up -d --build  # app on :3000, Postgres on :5432
+pnpm install && pnpm db:migrate   # one-time, from the host
+# open http://localhost:3000
+```
+
+By default the AI runs against an [LM Studio](https://lmstudio.ai) server on the host
+(`http://host.docker.internal:1234/v1`) — nothing leaves your machine. To use a cloud
+model instead, set `AI_PROVIDER` and the matching key in `.env`. The image is a
+multi-stage build of Next.js standalone output (`Dockerfile`).
+
 ## Quality & performance
 
 - **Accessibility** — components are checked with `jest-axe`; Lighthouse CI gates the a11y score at ≥ 0.9.
@@ -58,3 +74,7 @@ pnpm dev                      # http://localhost:3000
 - [x] **3 — Cover letter:** streaming draft, anti-slop
 - [x] **4 — Pipeline board:** CRUD + Postgres persistence + statuses
 - [~] **5 — Polish:** provider-switch UI ✓ · design system ✓ · a11y (axe) ✓ · ≥80% coverage ✓ · Lighthouse CI ✓ · rate limiting ✓ — deploy + demo remaining
+
+## License
+
+[MIT](LICENSE) © 2026 Dmytro
