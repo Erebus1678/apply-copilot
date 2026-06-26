@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { analysisSchema } from "@/lib/ai/analysis";
 import { loadCv, saveCv } from "@/lib/cv-storage";
+import { CvUpload } from "@/features/cv/CvUpload";
 import { useProvider } from "@/features/provider/useProviderStore";
 import { AnalysisResult } from "./AnalysisResult";
 
@@ -26,6 +27,11 @@ export function AnalyzeView() {
     // Only restore into an empty field so a remount never clobbers a live edit.
     if (stored && cvRef.current && !cvRef.current.value) cvRef.current.value = stored;
   }, []);
+
+  function fillCv(text: string) {
+    if (cvRef.current) cvRef.current.value = text;
+    saveCv(text);
+  }
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -66,6 +72,7 @@ export function AnalyzeView() {
             placeholder="Paste your CV once — it powers the fit score and gaps."
             className="min-h-40"
           />
+          <CvUpload onExtracted={fillCv} disabled={isLoading} />
         </div>
 
         <div className="flex gap-2">

@@ -5,6 +5,7 @@ import { useCompletion } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { loadCv, saveCv } from "@/lib/cv-storage";
+import { CvUpload } from "@/features/cv/CvUpload";
 import { useProvider } from "@/features/provider/useProviderStore";
 
 export function CoverLetterView() {
@@ -23,6 +24,12 @@ export function CoverLetterView() {
     const stored = loadCv();
     if (stored && cvRef.current && !cvRef.current.value) cvRef.current.value = stored;
   }, []);
+
+  function fillCv(text: string) {
+    if (cvRef.current) cvRef.current.value = text;
+    saveCv(text);
+    setCvError("");
+  }
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -86,6 +93,7 @@ export function CoverLetterView() {
             placeholder="Paste your CV once — the letter is grounded strictly in it."
             className="min-h-40"
           />
+          <CvUpload onExtracted={fillCv} disabled={isLoading} />
           {cvError && (
             <p className="text-destructive text-sm" role="alert">
               {cvError}

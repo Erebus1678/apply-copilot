@@ -1,4 +1,8 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+
+jest.mock("@/lib/cv/client", () => ({ uploadCv: jest.fn() }));
+import { uploadCv } from "@/lib/cv/client";
+const mockUploadCv = uploadCv as jest.Mock;
 
 const complete = jest.fn();
 const stop = jest.fn();
@@ -76,6 +80,25 @@ describe("CoverLetterView", () => {
     mockState = { ...mockState, error: new Error("provider unreachable") };
     render(<CoverLetterView />);
     expect(screen.getByRole("alert")).toHaveTextContent("provider unreachable");
+  });
+
+  it("fills the CV and clears the warning from an upload", async () => {
+    mockUploadCv.mockResolvedValue("uploaded cv body");
+    render(<CoverLetterView />);
+    // Trigger the missing-CV warning first.
+    fireEvent.change(screen.getByLabelText(/job description/i), { target: { value: longJd } });
+    fireEvent.click(screen.getByRole("button", { name: /draft letter/i }));
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("CV file"), {
+      target: { files: [new File(["x"], "cv.pdf", { type: "application/pdf" })] },
+    });
+    await waitFor(() =>
+      expect((screen.getByLabelText(/your cv/i) as HTMLTextAreaElement).value).toBe(
+        "uploaded cv body",
+      ),
+    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("edits the streamed draft via setCompletion", () => {

@@ -1,4 +1,8 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+
+jest.mock("@/lib/cv/client", () => ({ uploadCv: jest.fn() }));
+import { uploadCv } from "@/lib/cv/client";
+const mockUploadCv = uploadCv as jest.Mock;
 
 const submit = jest.fn();
 const stop = jest.fn();
@@ -49,6 +53,20 @@ describe("AnalyzeView", () => {
     expect(submit).toHaveBeenCalledWith(
       expect.objectContaining({ jd: expect.stringContaining("Senior React engineer") }),
     );
+  });
+
+  it("fills and persists the CV from an upload", async () => {
+    mockUploadCv.mockResolvedValue("uploaded cv text");
+    render(<AnalyzeView />);
+    fireEvent.change(screen.getByLabelText("CV file"), {
+      target: { files: [new File(["x"], "cv.pdf", { type: "application/pdf" })] },
+    });
+    await waitFor(() =>
+      expect((screen.getByLabelText(/your cv/i) as HTMLTextAreaElement).value).toBe(
+        "uploaded cv text",
+      ),
+    );
+    expect(localStorage.getItem("apply-copilot:cv")).toBe("uploaded cv text");
   });
 
   it("persists the CV to local storage", () => {
