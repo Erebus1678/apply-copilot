@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { compressPromptText } from "./compress";
 import { providerOverrideFields } from "./override";
 
 export const SENIORITY_LEVELS = ["junior", "mid", "senior", "staff", "lead", "principal"] as const;
@@ -53,11 +54,12 @@ const SYSTEM_PROMPT =
   "You are a precise technical recruiter. Extract only what the job description states; do not invent requirements. When a CV is provided, assess fit honestly — a low score with real gaps is more useful than flattery. When no CV is provided, set `fit` to null.";
 
 export function buildAnalysisPrompt(input: AnalyzeRequest): { system: string; prompt: string } {
-  const cvBlock = input.cv?.trim()
-    ? `\n\n--- CANDIDATE CV ---\n${input.cv.trim()}\n\nA CV is provided above. You MUST populate the \`fit\` object — a score (0-100), matched requirements, gaps, and a summary. Do NOT set fit to null.`
+  const cv = input.cv?.trim() ? compressPromptText(input.cv) : "";
+  const cvBlock = cv
+    ? `\n\n--- CANDIDATE CV ---\n${cv}\n\nA CV is provided above. You MUST populate the \`fit\` object — a score (0-100), matched requirements, gaps, and a summary. Do NOT set fit to null.`
     : "\n\n(No CV provided — set fit to null.)";
   return {
     system: SYSTEM_PROMPT,
-    prompt: `Analyze this job description.\n\n--- JOB DESCRIPTION ---\n${input.jd.trim()}${cvBlock}`,
+    prompt: `Analyze this job description.\n\n--- JOB DESCRIPTION ---\n${compressPromptText(input.jd)}${cvBlock}`,
   };
 }

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { CompressionHint } from "@/components/compression-hint";
 import { analysisSchema } from "@/lib/ai/analysis";
 import { loadCv, saveCv } from "@/lib/cv-storage";
 import { CvUpload } from "@/features/cv/CvUpload";
@@ -58,6 +59,7 @@ export function AnalyzeView() {
             className="min-h-64"
             required
           />
+          <CompressionHint sources={[jd]} />
         </div>
 
         <div className="flex flex-col gap-1.5">

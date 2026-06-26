@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { compressPromptText } from "./compress";
 import { providerOverrideFields } from "./override";
 
 export const CV_ISSUE_CATEGORIES = ["ats", "content", "clarity", "spelling", "formatting"] as const;
@@ -40,6 +41,6 @@ const SYSTEM_PROMPT =
 export function buildCvReviewPrompt(input: CvReviewRequest): { system: string; prompt: string } {
   return {
     system: SYSTEM_PROMPT,
-    prompt: `Review this CV for ATS-friendliness, content quality, clarity, spelling/grammar, and formatting.\n\n--- CV ---\n${input.cv.trim()}\n\nYou MUST return an atsScore (0-100) and a summary. List concrete issues — each with the specific problem and an actionable fix — and the CV's genuine strengths. Flag any spelling or grammar mistakes as issues with category "spelling". Do NOT pad with generic advice; report only what this CV actually needs.`,
+    prompt: `Review this CV for ATS-friendliness, content quality, clarity, spelling/grammar, and formatting.\n\n--- CV ---\n${compressPromptText(input.cv)}\n\nYou MUST return an atsScore (0-100) and a summary. List concrete issues — each with the specific problem and an actionable fix — and the CV's genuine strengths. Flag any spelling or grammar mistakes as issues with category "spelling". Do NOT pad with generic advice; report only what this CV actually needs.`,
   };
 }

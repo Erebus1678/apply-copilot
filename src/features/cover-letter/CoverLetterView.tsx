@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCompletion } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { CompressionHint } from "@/components/compression-hint";
 import { StreamingIndicator } from "@/components/streaming-indicator";
 import { cleanAiText } from "@/lib/ai/clean-text";
 import { loadCv, saveCv } from "@/lib/cv-storage";
@@ -83,6 +84,7 @@ export function CoverLetterView() {
             className="min-h-56"
             required
           />
+          <CompressionHint sources={[jd]} />
         </div>
 
         <div className="flex flex-col gap-1.5">

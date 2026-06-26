@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { compressPromptText } from "./compress";
 import { providerOverrideFields } from "./override";
 
 export const coverLetterRequestSchema = z.object({
@@ -29,6 +30,6 @@ export function buildCoverLetterPrompt(input: CoverLetterRequest): {
 } {
   return {
     system: SYSTEM_PROMPT,
-    prompt: `Write a tailored cover letter for this role, grounded strictly in the CV below.\n\n--- JOB DESCRIPTION ---\n${input.jd.trim()}\n\n--- CANDIDATE CV ---\n${input.cv.trim()}\n\nWrite the letter now. Output only the letter. Do not use any banned word or phrase — in particular, never write "leverage", "passionate", "excited", "proven track record", or "team player".`,
+    prompt: `Write a tailored cover letter for this role, grounded strictly in the CV below.\n\n--- JOB DESCRIPTION ---\n${compressPromptText(input.jd)}\n\n--- CANDIDATE CV ---\n${compressPromptText(input.cv)}\n\nWrite the letter now. Output only the letter. Do not use any banned word or phrase — in particular, never write "leverage", "passionate", "excited", "proven track record", or "team player".`,
   };
 }
