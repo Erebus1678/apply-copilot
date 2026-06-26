@@ -5,12 +5,14 @@ import { useCompletion } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { loadCv, saveCv } from "@/lib/cv-storage";
+import { useProvider } from "@/features/provider/useProviderStore";
 
 export function CoverLetterView() {
   const [jd, setJd] = useState("");
   const [cvError, setCvError] = useState("");
   const [copied, setCopied] = useState(false);
   const cvRef = useRef<HTMLTextAreaElement>(null);
+  const provider = useProvider();
 
   const { completion, complete, setCompletion, isLoading, stop, error } = useCompletion({
     api: "/api/cover-letter",
@@ -32,7 +34,7 @@ export function CoverLetterView() {
     }
     setCvError("");
     setCopied(false);
-    void complete("", { body: { jd: jd.trim(), cv } });
+    void complete("", { body: { jd: jd.trim(), cv, provider } });
   }
 
   async function handleCopy() {

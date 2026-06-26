@@ -58,7 +58,7 @@ describe("CoverLetterView", () => {
     fireEvent.click(screen.getByRole("button", { name: /draft letter/i }));
     expect(complete).toHaveBeenCalledWith(
       "",
-      expect.objectContaining({ body: { jd: longJd, cv: longCv } }),
+      expect.objectContaining({ body: expect.objectContaining({ jd: longJd, cv: longCv }) }),
     );
   });
 

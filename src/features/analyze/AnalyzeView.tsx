@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { analysisSchema } from "@/lib/ai/analysis";
 import { loadCv, saveCv } from "@/lib/cv-storage";
+import { useProvider } from "@/features/provider/useProviderStore";
 import { AnalysisResult } from "./AnalysisResult";
 
 export function AnalyzeView() {
   const [jd, setJd] = useState("");
   const cvRef = useRef<HTMLTextAreaElement>(null);
+  const provider = useProvider();
   const { object, submit, stop, isLoading, error } = useObject({
     api: "/api/analyze",
     schema: analysisSchema,
@@ -29,7 +31,7 @@ export function AnalyzeView() {
     event.preventDefault();
     if (jd.trim().length < 20) return;
     const cv = cvRef.current?.value.trim();
-    submit({ jd: jd.trim(), cv: cv || undefined });
+    submit({ jd: jd.trim(), cv: cv || undefined, provider });
   }
 
   const canSubmit = jd.trim().length >= 20 && !isLoading;

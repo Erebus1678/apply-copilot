@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   const { system, prompt } = buildCoverLetterPrompt(parsed.data);
 
   try {
-    const result = streamText({ model: getModel(), system, prompt });
+    const result = streamText({ model: getModel(parsed.data.provider), system, prompt });
     return result.toTextStreamResponse();
   } catch (error) {
     const message = error instanceof Error ? error.message : "Cover letter generation failed";
