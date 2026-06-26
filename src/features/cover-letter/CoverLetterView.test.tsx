@@ -16,8 +16,12 @@ let mockState = {
   error: undefined as Error | undefined,
 };
 
+let capturedOpts: { onFinish?: (prompt: string, text: string) => void } | undefined;
 jest.mock("@ai-sdk/react", () => ({
-  useCompletion: () => mockState,
+  useCompletion: (opts: { onFinish?: (prompt: string, text: string) => void }) => {
+    capturedOpts = opts;
+    return mockState;
+  },
 }));
 
 import { CoverLetterView } from "./CoverLetterView";
@@ -99,6 +103,12 @@ describe("CoverLetterView", () => {
       ),
     );
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("post-processes the finished draft to strip slop", () => {
+    render(<CoverLetterView />);
+    capturedOpts?.onFinish?.("", "**Dear** team,\n\n\n\nThanks.");
+    expect(setCompletion).toHaveBeenCalledWith("Dear team,\n\nThanks.");
   });
 
   it("edits the streamed draft via setCompletion", () => {

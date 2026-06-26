@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCompletion } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { cleanAiText } from "@/lib/ai/clean-text";
 import { loadCv, saveCv } from "@/lib/cv-storage";
 import { CvUpload } from "@/features/cv/CvUpload";
 import { useProvider } from "@/features/provider/useProviderStore";
@@ -18,6 +19,8 @@ export function CoverLetterView() {
   const { completion, complete, setCompletion, isLoading, stop, error } = useCompletion({
     api: "/api/cover-letter",
     streamProtocol: "text",
+    // Deterministic de-slop once the stream settles (preamble, fences, markdown).
+    onFinish: (_prompt, text) => setCompletion(cleanAiText(text)),
   });
 
   useEffect(() => {
