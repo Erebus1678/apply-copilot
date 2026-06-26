@@ -82,7 +82,9 @@ export function BoardView() {
       }
       const created = await importApplications(rows, profileIdRef.current || undefined);
       setApps((prev) => [...created, ...prev]);
-      setImportMsg(`Imported ${created.length}${errors.length ? `, skipped ${errors.length}` : ""}.`);
+      setImportMsg(
+        `Imported ${created.length}${errors.length ? `, skipped ${errors.length}` : ""}.`,
+      );
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Import failed");
     }

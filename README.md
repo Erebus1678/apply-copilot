@@ -22,7 +22,8 @@ request.
 - **Tailwind CSS v4** with an oklch design-token system + Storybook
 - Provider-agnostic **streaming AI layer** (local · Ollama · OpenAI · Anthropic ·
   OpenRouter · Groq · Together) with BYO-key + token-saver compression
-- Next API routes (Node) · Postgres (Neon/Supabase) for the pipeline
+- Next API routes (Node) · **embedded PGlite** by default (no database to run) ·
+  optional Postgres (Neon/Supabase) for a shared instance
 - Quality: Jest + React Testing Library, Playwright, ESLint, Prettier,
   Lighthouse CI (Core Web Vitals), GitHub Actions, Docker
 
@@ -30,8 +31,16 @@ request.
 
 ```bash
 pnpm install
-cp .env.example .env.local   # configure your AI provider
-pnpm dev                      # http://localhost:3000
+pnpm dev          # http://localhost:3000 — zero config: an embedded local DB
+                  # is created on first run, no database to set up
+```
+
+That's it for the board, profiles, and CSV/JSON import — they work with **no
+configuration**. To enable the AI features, pick a provider in the header (paste
+a key per device), or set defaults up front:
+
+```bash
+cp .env.example .env.local   # optional: choose a default AI provider / keys
 ```
 
 ## Providers
@@ -41,15 +50,15 @@ provider can also be selected per session in the header, where you can paste a
 **bring-your-own key** and pick a **model** (both stored on your device only). A
 status dot shows whether each provider is reachable (local) or has a key (cloud).
 
-| Provider   | `AI_PROVIDER` | Key env             | Base URL env / default                       | Model env / default |
-| ---------- | ------------- | ------------------- | -------------------------------------------- | ------------------- |
-| LM Studio  | `local`       | — (none)            | `LOCAL_AI_BASE_URL` · `http://localhost:1234/v1` | `LOCAL_AI_MODEL` · `qwen/qwen3-coder-30b` |
-| Ollama     | `ollama`      | — (none)            | `OLLAMA_BASE_URL` · `http://localhost:11434/v1`  | `OLLAMA_MODEL` · `llama3.1` |
-| OpenAI     | `openai`      | `OPENAI_API_KEY`    | official                                     | `OPENAI_MODEL` · `gpt-4o-mini` |
-| Anthropic  | `anthropic`   | `ANTHROPIC_API_KEY` | official                                     | `ANTHROPIC_MODEL` · `claude-sonnet-4-6` |
-| OpenRouter | `openrouter`  | `OPENROUTER_API_KEY`| `https://openrouter.ai/api/v1`               | `OPENROUTER_MODEL` · `openai/gpt-4o-mini` |
-| Groq       | `groq`        | `GROQ_API_KEY`      | `https://api.groq.com/openai/v1`             | `GROQ_MODEL` · `llama-3.3-70b-versatile` |
-| Together   | `together`    | `TOGETHER_API_KEY`  | `https://api.together.xyz/v1`                | `TOGETHER_MODEL` · `meta-llama/Llama-3.3-70B-Instruct-Turbo` |
+| Provider   | `AI_PROVIDER` | Key env              | Base URL env / default                           | Model env / default                                          |
+| ---------- | ------------- | -------------------- | ------------------------------------------------ | ------------------------------------------------------------ |
+| LM Studio  | `local`       | — (none)             | `LOCAL_AI_BASE_URL` · `http://localhost:1234/v1` | `LOCAL_AI_MODEL` · `qwen/qwen3-coder-30b`                    |
+| Ollama     | `ollama`      | — (none)             | `OLLAMA_BASE_URL` · `http://localhost:11434/v1`  | `OLLAMA_MODEL` · `llama3.1`                                  |
+| OpenAI     | `openai`      | `OPENAI_API_KEY`     | official                                         | `OPENAI_MODEL` · `gpt-4o-mini`                               |
+| Anthropic  | `anthropic`   | `ANTHROPIC_API_KEY`  | official                                         | `ANTHROPIC_MODEL` · `claude-sonnet-4-6`                      |
+| OpenRouter | `openrouter`  | `OPENROUTER_API_KEY` | `https://openrouter.ai/api/v1`                   | `OPENROUTER_MODEL` · `openai/gpt-4o-mini`                    |
+| Groq       | `groq`        | `GROQ_API_KEY`       | `https://api.groq.com/openai/v1`                 | `GROQ_MODEL` · `llama-3.3-70b-versatile`                     |
+| Together   | `together`    | `TOGETHER_API_KEY`   | `https://api.together.xyz/v1`                    | `TOGETHER_MODEL` · `meta-llama/Llama-3.3-70B-Instruct-Turbo` |
 
 Every provider except Anthropic is OpenAI-compatible — add another by appending a
 row to `src/lib/ai/providers.ts`. For LM Studio / Ollama, the model id must match
@@ -69,32 +78,59 @@ what the server reports (e.g. LM Studio needs the org prefix `qwen/...`).
 
 ## Scripts
 
-| Script                                    | What it does             |
-| ----------------------------------------- | ------------------------ |
-| `pnpm dev`                                | Run the dev server       |
-| `pnpm build` / `pnpm start`               | Production build / serve |
-| `pnpm typecheck`                          | `tsc --noEmit`           |
-| `pnpm lint`                               | ESLint                   |
-| `pnpm format` / `pnpm format:check`       | Prettier write / check   |
-| `pnpm test` / `pnpm test:coverage`        | Jest + RTL               |
-| `pnpm e2e`                                | Playwright end-to-end    |
-| `pnpm storybook` / `pnpm build-storybook` | Component workshop       |
+| Script                                    | What it does                       |
+| ----------------------------------------- | ---------------------------------- |
+| `pnpm dev`                                | Run the dev server                 |
+| `pnpm dev:lan`                            | Dev server on your LAN (`0.0.0.0`) |
+| `pnpm build` / `pnpm start`               | Production build / serve           |
+| `pnpm typecheck`                          | `tsc --noEmit`                     |
+| `pnpm lint`                               | ESLint                             |
+| `pnpm format` / `pnpm format:check`       | Prettier write / check             |
+| `pnpm test` / `pnpm test:coverage`        | Jest + RTL                         |
+| `pnpm e2e`                                | Playwright end-to-end              |
+| `pnpm storybook` / `pnpm build-storybook` | Component workshop                 |
 
-## Self-hosting
+## Self-hosting & LAN sharing
 
-Run the whole thing on your own machine — app plus Postgres — with Docker:
+Run the whole thing on your own machine with **one command** — no database to
+install, no migration step:
 
 ```bash
-cp .env.example .env          # pick AI_PROVIDER; DB urls are wired in compose
-docker compose up -d --build  # app on :3000, Postgres on :5432
-pnpm install && pnpm db:migrate   # one-time, from the host
-# open http://localhost:3000
+docker compose up -d --build   # then open http://localhost:3000
 ```
 
-By default the AI runs against an [LM Studio](https://lmstudio.ai) server on the host
-(`http://host.docker.internal:1234/v1`) — nothing leaves your machine. To use a cloud
-model instead, set `AI_PROVIDER` and the matching key in `.env`. The image is a
-multi-stage build of Next.js standalone output (`Dockerfile`).
+The container ships an **embedded PGlite** database (persisted in the `app-data`
+volume, auto-migrated on first boot), so there's nothing else to run. The image
+is a multi-stage build of Next.js standalone output (`Dockerfile`).
+
+### Share it on your LAN
+
+The server listens on `0.0.0.0`, so other devices on your network can use the
+same instance — handy for sharing a tracker with a partner or across your phone
+and laptop:
+
+1. Find your machine's LAN IP (`ipconfig` on Windows, `ip addr` / `ifconfig` on
+   macOS/Linux) — e.g. `192.168.1.50`.
+2. From any device on the network, open `http://192.168.1.50:3000`.
+3. Each person picks their own **profile** in the header — applications are
+   scoped per profile, so trackers stay separate on the shared instance.
+
+Running without Docker? `pnpm build && pnpm start` already binds `0.0.0.0`; for
+the dev server use `pnpm dev:lan`. (Allow port 3000 through your firewall.)
+
+### AI provider
+
+By default the AI runs against an [LM Studio](https://lmstudio.ai) server on the
+host (`http://host.docker.internal:1234/v1`) — nothing leaves your machine. To use
+a cloud model instead, set `AI_PROVIDER` and the matching key in `.env` (or just
+pick a provider in the header). AI is entirely optional — the tracker works
+without it.
+
+### Prefer a shared Postgres?
+
+Set `DATABASE_URL` (and `DIRECT_URL` for migrations) to a Postgres instance
+— Supabase, Neon, or your own — and the app switches drivers automatically.
+Generate/apply the schema with `pnpm db:generate` / `pnpm db:migrate`.
 
 ## Quality & performance
 
