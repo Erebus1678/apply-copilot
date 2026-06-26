@@ -17,6 +17,7 @@ const mockFetch = fetchApplications as jest.Mock;
 function app(over: Partial<Application>): Application {
   return {
     id: Math.random().toString(),
+    profileId: null,
     company: "Acme",
     role: "Engineer",
     status: "applied",

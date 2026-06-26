@@ -15,6 +15,7 @@ import {
   STATUS_LABELS,
   type ApplicationStatus,
 } from "@/lib/applications/status";
+import { useActiveProfile } from "@/features/profile/useProfileStore";
 import { ApplicationCard } from "./ApplicationCard";
 
 export function BoardView() {
@@ -24,17 +25,18 @@ export function BoardView() {
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
   const [adding, setAdding] = useState(false);
+  const profileId = useActiveProfile();
 
   useEffect(() => {
     let active = true;
-    fetchApplications()
+    fetchApplications(profileId || undefined)
       .then((data) => active && setApps(data))
       .catch((e: unknown) => active && setError(e instanceof Error ? e.message : "Failed to load"))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, []);
+  }, [profileId]);
 
   async function handleAdd(event: React.FormEvent) {
     event.preventDefault();
@@ -46,6 +48,7 @@ export function BoardView() {
         company: company.trim(),
         role: role.trim(),
         status: "saved",
+        profileId: profileId || undefined,
       });
       setApps((prev) => [created, ...prev]);
       setCompany("");

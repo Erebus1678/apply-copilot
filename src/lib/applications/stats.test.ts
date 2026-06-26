@@ -4,6 +4,7 @@ import { computeApplicationStats } from "./stats";
 function app(over: Partial<Application>): Application {
   return {
     id: "id",
+    profileId: null,
     company: "Acme",
     role: "Engineer",
     status: "saved",

@@ -82,9 +82,7 @@ export function AnalysisResult({ analysis, isLoading, error }: Props) {
       {fit && (
         <section className="border-border flex flex-col gap-4 rounded-lg border p-4">
           <div className="flex items-center gap-4">
-            {typeof fit.score === "number" && (
-              <ScoreRing score={fit.score} label="CV fit score" />
-            )}
+            {typeof fit.score === "number" && <ScoreRing score={fit.score} label="CV fit score" />}
             <div className="flex flex-col gap-1">
               <h3 className="text-sm font-semibold">CV fit</h3>
               {fit.summary && <p className="text-muted-foreground text-sm">{fit.summary}</p>}

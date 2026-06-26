@@ -8,6 +8,13 @@
       "when": 1782414430300,
       "tag": "0000_petite_sasquatch",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782476567019,
+      "tag": "0001_misty_scarlet_spider",
+      "breakpoints": true
     }
   ]
 }

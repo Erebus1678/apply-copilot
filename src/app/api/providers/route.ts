@@ -38,8 +38,7 @@ export async function GET() {
     PROVIDER_IDS.map(async (id) => {
       const spec = PROVIDERS[id];
       const resolved = cfg.providers[id];
-      const live =
-        !spec.needsKey && resolved.baseUrl ? await pingModels(resolved.baseUrl) : null;
+      const live = !spec.needsKey && resolved.baseUrl ? await pingModels(resolved.baseUrl) : null;
       return {
         id,
         label: spec.label,

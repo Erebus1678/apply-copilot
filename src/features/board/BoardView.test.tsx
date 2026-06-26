@@ -16,6 +16,7 @@ const mocked = client as jest.Mocked<typeof client>;
 function makeApp(over: Partial<Application>): Application {
   return {
     id: "id-1",
+    profileId: null,
     company: "Acme",
     role: "Engineer",
     status: "saved",

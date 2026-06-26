@@ -19,6 +19,8 @@ const config: Config = {
     "!src/app/**/page.tsx",
     "!src/app/**/route.ts",
     "!src/db/**",
+    // Repositories are thin Drizzle wrappers — integration boundary, covered live.
+    "!src/lib/**/repository.ts",
   ],
   coverageThreshold: {
     // Statements & lines clear 80% (the headline coverage). Functions/branches

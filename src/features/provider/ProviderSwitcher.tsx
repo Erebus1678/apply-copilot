@@ -154,7 +154,9 @@ export function ProviderSwitcher() {
           <div className="border-border mt-2 flex flex-col gap-2 border-t pt-2">
             {activeSpec.needsKey && (
               <label className="flex flex-col gap-1 text-xs">
-                <span className="text-muted-foreground">{activeSpec.label} API key (this device)</span>
+                <span className="text-muted-foreground">
+                  {activeSpec.label} API key (this device)
+                </span>
                 <input
                   type="password"
                   autoComplete="off"

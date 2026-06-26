@@ -9,8 +9,9 @@ async function parseOrThrow<T>(res: Response): Promise<T> {
   return (await res.json()) as T;
 }
 
-export async function fetchApplications(): Promise<Application[]> {
-  const res = await fetch("/api/applications");
+export async function fetchApplications(profileId?: string): Promise<Application[]> {
+  const query = profileId ? `?profileId=${encodeURIComponent(profileId)}` : "";
+  const res = await fetch(`/api/applications${query}`);
   const body = await parseOrThrow<{ data: Application[] }>(res);
   return body.data;
 }

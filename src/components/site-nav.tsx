@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { ProfileSwitcher } from "@/features/profile/ProfileSwitcher";
 import { ProviderSwitcher } from "@/features/provider/ProviderSwitcher";
 import { ThemeToggle } from "@/features/theme/ThemeToggle";
 
@@ -46,6 +47,7 @@ export function SiteNav() {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
+          <ProfileSwitcher />
           <ProviderSwitcher />
           <ThemeToggle />
         </div>

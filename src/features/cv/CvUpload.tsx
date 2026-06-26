@@ -31,7 +31,11 @@ export function CvUpload({ onExtracted, disabled }: Props) {
     }
   }
 
-  const label = busy ? "Reading…" : dragging ? "Drop to read" : "Drop a PDF/DOCX or click to upload";
+  const label = busy
+    ? "Reading…"
+    : dragging
+      ? "Drop to read"
+      : "Drop a PDF/DOCX or click to upload";
 
   return (
     <div className="flex flex-col gap-1.5">

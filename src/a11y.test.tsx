@@ -9,6 +9,7 @@ import type { Analysis } from "@/lib/ai/analysis";
 
 const app: Application = {
   id: "a1",
+  profileId: null,
   company: "Acme",
   role: "Senior Frontend Engineer",
   status: "applied",

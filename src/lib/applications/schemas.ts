@@ -2,6 +2,7 @@ import { z } from "zod";
 import { APPLICATION_STATUSES } from "./status";
 
 export const createApplicationSchema = z.object({
+  profileId: z.string().uuid().optional(),
   company: z.string().trim().min(1, "Company is required").max(200),
   role: z.string().trim().min(1, "Role is required").max(200),
   status: z.enum(APPLICATION_STATUSES).default("saved"),

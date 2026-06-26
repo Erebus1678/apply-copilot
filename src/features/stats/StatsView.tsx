@@ -6,22 +6,24 @@ import type { Application } from "@/db/schema";
 import { fetchApplications } from "@/lib/applications/client";
 import { computeApplicationStats } from "@/lib/applications/stats";
 import { APPLICATION_STATUSES, STATUS_LABELS } from "@/lib/applications/status";
+import { useActiveProfile } from "@/features/profile/useProfileStore";
 
 export function StatsView() {
   const [apps, setApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const profileId = useActiveProfile();
 
   useEffect(() => {
     let active = true;
-    fetchApplications()
+    fetchApplications(profileId || undefined)
       .then((data) => active && setApps(data))
       .catch((e: unknown) => active && setError(e instanceof Error ? e.message : "Failed to load"))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, []);
+  }, [profileId]);
 
   if (loading) return <p className="text-muted-foreground text-sm">Loading your stats…</p>;
   if (error)
@@ -80,7 +82,10 @@ export function StatsView() {
             return (
               <li key={s} className="flex items-center gap-3">
                 <span className="w-20 shrink-0 text-sm">{STATUS_LABELS[s]}</span>
-                <div className="bg-muted h-2 flex-1 overflow-hidden rounded-full" aria-hidden="true">
+                <div
+                  className="bg-muted h-2 flex-1 overflow-hidden rounded-full"
+                  aria-hidden="true"
+                >
                   <div className="bg-primary h-full rounded-full" style={{ width: `${pct}%` }} />
                 </div>
                 <span className="text-muted-foreground w-12 shrink-0 text-right text-sm tabular-nums">

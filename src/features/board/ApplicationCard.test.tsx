@@ -4,6 +4,7 @@ import type { Application } from "@/db/schema";
 
 const app: Application = {
   id: "a1",
+  profileId: null,
   company: "Acme",
   role: "Senior Frontend Engineer",
   status: "applied",

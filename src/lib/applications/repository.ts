@@ -3,9 +3,11 @@ import { db, dbReady } from "@/db/client";
 import { applications, type Application } from "@/db/schema";
 import type { CreateApplicationInput, UpdateApplicationInput } from "./schemas";
 
-export async function listApplications(): Promise<Application[]> {
+export async function listApplications(profileId?: string): Promise<Application[]> {
   await dbReady;
-  return db.select().from(applications).orderBy(desc(applications.createdAt));
+  const base = db.select().from(applications).$dynamic();
+  if (profileId) base.where(eq(applications.profileId, profileId));
+  return base.orderBy(desc(applications.createdAt));
 }
 
 export async function createApplication(input: CreateApplicationInput): Promise<Application> {
