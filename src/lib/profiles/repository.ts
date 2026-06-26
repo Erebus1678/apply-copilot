@@ -1,4 +1,4 @@
-import { asc, sql } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { db, dbReady } from "@/db/client";
 import { profiles, type Profile } from "@/db/schema";
 import type { CreateProfileInput } from "./schemas";
@@ -12,6 +12,12 @@ export async function createProfile(input: CreateProfileInput): Promise<Profile>
   await dbReady;
   const [row] = await db.insert(profiles).values(input).returning();
   return row;
+}
+
+export async function renameProfile(id: string, name: string): Promise<Profile | null> {
+  await dbReady;
+  const [row] = await db.update(profiles).set({ name }).where(eq(profiles.id, id)).returning();
+  return row ?? null;
 }
 
 /**

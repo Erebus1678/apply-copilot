@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Profile } from "@/db/schema";
-import { createProfile, fetchProfiles } from "@/lib/profiles/client";
+import { createProfile, fetchProfiles, renameProfile } from "@/lib/profiles/client";
 import { cn } from "@/lib/utils";
 import { setActiveProfile, useActiveProfile } from "./useProfileStore";
 
@@ -12,6 +12,8 @@ export function ProfileSwitcher() {
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
 
   // Load profiles once (the endpoint guarantees at least a default exists).
@@ -72,6 +74,18 @@ export function ProfileSwitcher() {
     }
   }
 
+  async function handleRename(id: string) {
+    const name = editName.trim();
+    if (!name) return;
+    try {
+      const updated = await renameProfile(id, name);
+      setProfiles((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+    } catch {
+      // ignore — keep the field open for a retry
+    }
+    setEditingId(null);
+  }
+
   const activeName = profiles.find((p) => p.id === active)?.name ?? "Profile";
 
   return (
@@ -98,19 +112,58 @@ export function ProfileSwitcher() {
         >
           <ul className="flex flex-col">
             {profiles.map((p) => (
-              <li key={p.id}>
-                <button
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={p.id === active}
-                  onClick={() => setActiveProfile(p.id)}
-                  className={cn(
-                    "w-full truncate rounded-md px-2 py-1.5 text-left text-sm transition-colors",
-                    p.id === active ? "bg-accent text-accent-foreground" : "hover:bg-accent/60",
-                  )}
-                >
-                  {p.name}
-                </button>
+              <li key={p.id} className="flex items-center gap-1">
+                {editingId === p.id ? (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void handleRename(p.id);
+                    }}
+                    className="flex flex-1 gap-1"
+                  >
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      aria-label={`Rename ${p.name}`}
+                      maxLength={80}
+                      autoFocus
+                      className="border-border bg-background focus-visible:ring-ring min-w-0 flex-1 rounded-md border px-2 py-1 text-sm outline-none focus-visible:ring-2"
+                    />
+                    <button
+                      type="submit"
+                      className="border-border rounded-md border px-2 py-1 text-xs font-medium"
+                    >
+                      Save
+                    </button>
+                  </form>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={p.id === active}
+                      onClick={() => setActiveProfile(p.id)}
+                      className={cn(
+                        "flex-1 truncate rounded-md px-2 py-1.5 text-left text-sm transition-colors",
+                        p.id === active ? "bg-accent text-accent-foreground" : "hover:bg-accent/60",
+                      )}
+                    >
+                      {p.name}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Rename ${p.name}`}
+                      onClick={() => {
+                        setEditingId(p.id);
+                        setEditName(p.name);
+                      }}
+                      className="text-muted-foreground hover:text-foreground hover:bg-accent/60 rounded-md px-1.5 py-1 text-xs"
+                    >
+                      ✎
+                    </button>
+                  </>
+                )}
               </li>
             ))}
           </ul>

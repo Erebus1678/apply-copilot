@@ -24,3 +24,13 @@ export async function createProfile(input: CreateProfileInput): Promise<Profile>
   const body = await parseOrThrow<{ data: Profile }>(res);
   return body.data;
 }
+
+export async function renameProfile(id: string, name: string): Promise<Profile> {
+  const res = await fetch(`/api/profiles/${id}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  const body = await parseOrThrow<{ data: Profile }>(res);
+  return body.data;
+}

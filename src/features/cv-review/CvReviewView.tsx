@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,7 @@ import { CvReviewResult } from "./CvReviewResult";
 
 export function CvReviewView() {
   const cvRef = useRef<HTMLTextAreaElement>(null);
+  const [notice, setNotice] = useState("");
   const provider = useProvider();
   const providerConfig = useProviderConfig();
   const { object, submit, stop, isLoading, error } = useObject({
@@ -32,7 +33,11 @@ export function CvReviewView() {
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     const cv = cvRef.current?.value.trim() ?? "";
-    if (cv.length < 50) return;
+    if (cv.length < 50) {
+      setNotice("Add at least 50 characters of your CV — paste it above, or upload a PDF/DOCX.");
+      return;
+    }
+    setNotice("");
     submit({ cv, ...overrideFor(provider, providerConfig) });
   }
 
@@ -65,6 +70,12 @@ export function CvReviewView() {
             </Button>
           )}
         </div>
+
+        {notice && (
+          <p className="text-destructive text-sm" role="alert">
+            {notice}
+          </p>
+        )}
       </form>
 
       <div className="lg:border-border lg:border-l lg:pl-8">

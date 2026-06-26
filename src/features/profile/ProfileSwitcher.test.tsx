@@ -1,12 +1,17 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
-jest.mock("@/lib/profiles/client", () => ({ fetchProfiles: jest.fn(), createProfile: jest.fn() }));
+jest.mock("@/lib/profiles/client", () => ({
+  fetchProfiles: jest.fn(),
+  createProfile: jest.fn(),
+  renameProfile: jest.fn(),
+}));
 
-import { createProfile, fetchProfiles } from "@/lib/profiles/client";
+import { createProfile, fetchProfiles, renameProfile } from "@/lib/profiles/client";
 import { ProfileSwitcher } from "./ProfileSwitcher";
 
 const mockFetch = fetchProfiles as jest.Mock;
 const mockCreate = createProfile as jest.Mock;
+const mockRename = renameProfile as jest.Mock;
 
 function profile(id: string, name: string) {
   return { id, name, createdAt: new Date() };
@@ -17,6 +22,19 @@ describe("ProfileSwitcher", () => {
     localStorage.clear();
     mockFetch.mockReset();
     mockCreate.mockReset();
+    mockRename.mockReset();
+  });
+
+  it("renames a profile inline", async () => {
+    mockFetch.mockResolvedValue([profile("p1", "Personal")]);
+    mockRename.mockResolvedValue(profile("p1", "Dima"));
+    render(<ProfileSwitcher />);
+    fireEvent.click(await screen.findByRole("button", { name: "Personal" }));
+    fireEvent.click(screen.getByRole("button", { name: "Rename Personal" }));
+    fireEvent.change(screen.getByLabelText("Rename Personal"), { target: { value: "Dima" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(mockRename).toHaveBeenCalledWith("p1", "Dima"));
+    expect(await screen.findByRole("button", { name: "Dima" })).toBeInTheDocument();
   });
 
   it("loads profiles and selects the first as active", async () => {
