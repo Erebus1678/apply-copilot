@@ -1,0 +1,137 @@
+# Apply Copilot — backlog build loop
+# One feature per iteration (delivery), gated like the original phases 0-5.
+# Deploy is OUT of scope (handled last, separately).
+#
+# Iteration order (each = one "delivery"):
+#   1. cv-upload            CV upload (PDF/DOCX) on /analyze + /cover-letter
+#   2. cv-quality-check     CV quality check (ATS-friendliness, spelling) — solid minimum
+#   3. statistics           Statistics view (pipeline analytics)
+#   4. ai-text-postprocess  Post-process AI text (de-slop beyond prompt)
+#   5. design-polish        Animations / design polish
+#   6. self-host            Self-hosted distribution + LICENSE
+version: 1
+meta:
+  name: apply-copilot-backlog
+  description: Ship the Apply Copilot feature backlog one feature per iteration, deploy excluded.
+  author: dmytro
+  created: 2026-06-26
+
+goal:
+  statement: >
+    Ship the Apply Copilot feature backlog one feature per iteration, in order
+    (cv-upload, cv-quality-check, statistics, ai-text-postprocess, design-polish,
+    self-host), each behind the same quality gate used for phases 0-5. Deploy is
+    explicitly out of scope and handled separately, last.
+  context_sources:
+    - file: E:\projects\apply-copilot
+    - file: C:\Users\furym\.claude\projects\E--projects\memory\apply-copilot-build.md
+  definition_of_done: >
+    All six backlog features are implemented with small diffs that follow existing
+    patterns, every gate is green (typecheck, lint, test:coverage at 80/70/78/80,
+    build), each passed ECC review with no CRITICAL/HIGH, and each feature is
+    committed. Deploy is NOT part of done.
+  verification:
+    - id: typecheck
+      type: programmatic
+      check: ["pnpm", "typecheck"]
+      expect: exit_zero
+    - id: lint
+      type: programmatic
+      check: ["pnpm", "lint"]
+      expect: exit_zero
+    - id: tests
+      type: programmatic
+      check: ["pnpm", "test:coverage"]
+      expect: exit_zero
+    - id: build
+      type: programmatic
+      check: ["pnpm", "build"]
+      expect: exit_zero
+    - id: review
+      type: judge
+      rubric: >
+        The feature follows existing codebase patterns, validates input at trust
+        boundaries, handles errors, and introduces no CRITICAL or HIGH issues
+        (security, correctness, React hook/render, accessibility).
+    - id: feature-signoff
+      type: human
+      prompt: "Feature committed and gates green — OK to proceed to the next backlog feature?"
+
+host:
+  cli: claude
+  model: default
+  invoke: ["claude", "-p"]
+  timeout_sec: 900
+
+council:
+  - id: react-reviewer
+    role: judge
+    cli: claude
+    model: default
+    invoke: ["claude", "-p"]
+    timeout_sec: 600
+    scope: [delivery]
+    local: true
+  - id: code-reviewer
+    role: judge
+    cli: claude
+    model: default
+    invoke: ["claude", "-p"]
+    timeout_sec: 600
+    scope: [delivery]
+    local: true
+
+gates:
+  plan_gate:
+    when: after_plan
+    members: [code-reviewer]
+    verdict_policy: revise_until_clean
+    verdict_source: code-reviewer
+    criteria: [review]
+    max_revisions: 2
+  delivery_gate:
+    when: after_each_delivery
+    members: [react-reviewer, code-reviewer]
+    verdict_policy: revise_until_clean
+    verdict_source: code-reviewer
+    criteria: [typecheck, lint, tests, build, review]
+    max_revisions: 3
+
+loop_control:
+  max_iterations: 8
+  budget:
+    wall_clock_min: 240
+  no_progress:
+    max_stalled_iterations: 2
+    signals:
+      - same gate failure repeats with no material code change
+      - delivery has no committed diff
+      - reviewer findings unchanged after a revision
+    action: stop
+  human_checkpoints:
+    - confirm before starting each feature beyond the first
+    - confirm after each feature commit before moving on
+  stop_conditions:
+    - all six backlog features pass their gate clean and are committed
+    - max_iterations reached
+    - same blocker repeats for 2 iterations
+    - wall_clock budget exceeded
+
+execution:
+  mode: in_session
+  isolation: current_workspace
+  side_effects:
+    requires_approval: true
+    duplicate_action_check: true
+
+observability:
+  state_file: state.json
+  run_log: run-log.md
+  checkpoint_granularity: gate
+
+privacy:
+  egress: []   # council runs in-session (local), nothing leaves the machine
+
+workspace:
+  dir: ./loop-workspace
+  layout: [plan.md, "delivery-{n}.md", "review-{n}.md", state.json, run-log.md]

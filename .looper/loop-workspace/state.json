@@ -1,0 +1,14 @@
+{
+  "loop": "apply-copilot-backlog",
+  "current_iteration": 0,
+  "active_feature": null,
+  "backlog": [
+    { "id": "cv-upload",            "status": "pending", "commit": null },
+    { "id": "cv-quality-check",     "status": "pending", "commit": null },
+    { "id": "statistics",           "status": "pending", "commit": null },
+    { "id": "ai-text-postprocess",  "status": "pending", "commit": null },
+    { "id": "design-polish",        "status": "pending", "commit": null },
+    { "id": "self-host",            "status": "pending", "commit": null }
+  ],
+  "deploy": "OUT_OF_SCOPE_LAST"
+}
