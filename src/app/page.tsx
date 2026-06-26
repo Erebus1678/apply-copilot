@@ -3,18 +3,19 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 // A real sequence — the application workflow — so the numbering carries meaning.
+// Start by getting your CV in shape, then measure fit against a specific role.
 const steps = [
   {
     n: "01",
-    label: "Analyze",
-    href: "/analyze",
-    desc: "Paste a JD → tech stack, seniority, archetype.",
+    label: "CV check",
+    href: "/cv",
+    desc: "Score your CV's ATS-readiness and fix what's flagged.",
   },
   {
     n: "02",
-    label: "Score",
+    label: "Analyze",
     href: "/analyze",
-    desc: "Match it against your CV with concrete gaps.",
+    desc: "Paste a JD → fit score, concrete gaps, tech stack.",
   },
   {
     n: "03",

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PageHeading } from "@/components/page-heading";
+import { PageShell } from "@/components/page-shell";
 import { BoardView } from "@/features/board/BoardView";
 
 export const metadata: Metadata = {
@@ -8,12 +8,13 @@ export const metadata: Metadata = {
 
 export default function BoardPage() {
   return (
-    <main className="reveal mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-16">
-      <PageHeading eyebrow="04 · Job Tracker" title="Your job tracker">
-        Track every application through its stages — saved, applied, interviewing, and beyond.
-        Persisted to your database.
-      </PageHeading>
+    <PageShell
+      eyebrow="04 · Job Tracker"
+      title="Your job tracker"
+      intro="Track every application through its stages — saved, applied, interviewing, and beyond. Persisted to your database."
+      wide
+    >
       <BoardView />
-    </main>
+    </PageShell>
   );
 }

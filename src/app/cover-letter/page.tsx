@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PageHeading } from "@/components/page-heading";
+import { PageShell } from "@/components/page-shell";
 import { CoverLetterView } from "@/features/cover-letter/CoverLetterView";
 
 export const metadata: Metadata = {
@@ -8,12 +8,12 @@ export const metadata: Metadata = {
 
 export default function CoverLetterPage() {
   return (
-    <main className="reveal mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-16">
-      <PageHeading eyebrow="03 · Draft" title="Draft a cover letter">
-        A tailored letter grounded strictly in your CV and the role — streamed live, editable, and
-        free of the usual AI clichés.
-      </PageHeading>
+    <PageShell
+      eyebrow="03 · Draft"
+      title="Draft a cover letter"
+      intro="A tailored letter grounded strictly in your CV and the role — streamed live, editable, and free of the usual AI clichés."
+    >
       <CoverLetterView />
-    </main>
+    </PageShell>
   );
 }

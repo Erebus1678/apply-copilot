@@ -9,9 +9,9 @@ describe("Home", () => {
     ).toBeInTheDocument();
   });
 
-  it("lists the four core capabilities", () => {
+  it("lists the four workflow steps, led by the CV check", () => {
     render(<Home />);
-    for (const label of ["Analyze", "Score", "Draft", "Track"]) {
+    for (const label of ["CV check", "Analyze", "Draft", "Track"]) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
   });

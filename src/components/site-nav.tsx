@@ -7,9 +7,10 @@ import { ProfileSwitcher } from "@/features/profile/ProfileSwitcher";
 import { ProviderSwitcher } from "@/features/provider/ProviderSwitcher";
 import { ThemeToggle } from "@/features/theme/ThemeToggle";
 
+// Order follows the application workflow: CV first, then fit, draft, track, stats.
 const links = [
-  { href: "/analyze", label: "Analyze" },
   { href: "/cv", label: "CV check" },
+  { href: "/analyze", label: "Analyze" },
   { href: "/cover-letter", label: "Cover letter" },
   { href: "/board", label: "Job Tracker" },
   { href: "/stats", label: "Stats" },
