@@ -50,7 +50,10 @@ export async function POST(req: Request) {
     try {
       return Response.json({ text: await extractJdFromUrl(url.trim()) });
     } catch (error) {
-      return Response.json({ error: messageOf(error, "Could not read that link.") }, { status: 422 });
+      return Response.json(
+        { error: messageOf(error, "Could not read that link.") },
+        { status: 422 },
+      );
     }
   }
 

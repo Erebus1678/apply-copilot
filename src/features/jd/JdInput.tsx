@@ -61,6 +61,11 @@ export function JdInput({ id, value, onChange, placeholder, disabled, textareaCl
     }
   }
 
+  function fetchUrl() {
+    const trimmed = url.trim();
+    if (trimmed) void run("url", () => extractJdUrl(trimmed));
+  }
+
   const dropLabel =
     busy === "file"
       ? "Reading…"
@@ -118,31 +123,34 @@ export function JdInput({ id, value, onChange, placeholder, disabled, textareaCl
         onChange={(e) => handleFile(e.target.files?.[0])}
       />
 
-      <form
-        className="flex gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const trimmed = url.trim();
-          if (trimmed) void run("url", () => extractJdUrl(trimmed));
-        }}
-      >
+      {/* A plain div, not a <form>: JdInput renders inside the page's <form>,
+          and nested forms are invalid HTML (hydration error). Enter is handled
+          manually so it fetches the URL instead of submitting the outer form. */}
+      <div className="flex gap-2">
         <input
           type="url"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              fetchUrl();
+            }
+          }}
           placeholder="…or paste a job link"
           aria-label="Job description URL"
           disabled={disabled || importing}
           className="border-border bg-background focus-visible:ring-ring min-w-0 flex-1 rounded-md border px-2 py-1.5 text-sm outline-none focus-visible:ring-2 disabled:opacity-60"
         />
         <button
-          type="submit"
+          type="button"
+          onClick={fetchUrl}
           disabled={disabled || importing || !url.trim()}
           className="border-border shrink-0 rounded-md border px-3 py-1.5 text-sm font-medium disabled:opacity-50"
         >
           {busy === "url" ? "Fetching…" : "Fetch"}
         </button>
-      </form>
+      </div>
 
       {error && (
         <p className="text-destructive text-sm" role="alert">
