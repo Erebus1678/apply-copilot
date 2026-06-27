@@ -48,6 +48,9 @@ yarn-error.log*
 /.looper-oss
 /.looper-providers
 
+# codegraph local index (per-developer, not part of the app)
+/.codegraph
+
 # vercel
 .vercel
 
