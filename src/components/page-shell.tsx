@@ -18,7 +18,11 @@ export function PageShell({ eyebrow, title, intro, wide = false, children }: Pro
     <main
       className={cn(
         "reveal mx-auto flex w-full flex-col gap-8 px-6 py-16",
-        wide ? "max-w-6xl" : "max-w-5xl",
+        // Scale the canvas up on larger displays instead of capping at 1024px.
+        // `wide` (tool/grid pages) grows further than text pages.
+        wide
+          ? "3xl:max-w-[112rem] max-w-6xl xl:max-w-7xl 2xl:max-w-[100rem]"
+          : "3xl:max-w-[100rem] max-w-5xl xl:max-w-6xl 2xl:max-w-7xl",
       )}
     >
       <PageHeading eyebrow={eyebrow} title={title}>

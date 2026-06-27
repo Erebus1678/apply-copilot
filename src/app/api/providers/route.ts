@@ -19,12 +19,13 @@ async function pingModels(baseUrl: string): Promise<boolean> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
   try {
-    const res = await fetch(`${baseUrl.replace(/\/$/, "")}/models`, {
-      signal: controller.signal,
-    });
-    return res.ok;
+    // Any HTTP response means the server is up. Some OpenAI-compatible servers
+    // (e.g. 9router) 404/401 on /models yet serve /chat/completions fine, so
+    // gating on res.ok wrongly marks a working provider as down.
+    await fetch(`${baseUrl.replace(/\/$/, "")}/models`, { signal: controller.signal });
+    return true;
   } catch {
-    return false;
+    return false; // network error / timeout → genuinely unreachable
   } finally {
     clearTimeout(timer);
   }

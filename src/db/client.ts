@@ -19,6 +19,22 @@ const globalForDb = globalThis as unknown as {
 const connectionString = process.env.DATABASE_URL;
 
 function makeDb(): { db: PostgresJsDatabase<Schema>; ready: Promise<unknown> } {
+  // During `next build`, route modules are imported for analysis but their
+  // handlers never run. Opening the real PGlite datadir here would race a running
+  // dev server (PGlite is single-process) and can corrupt it. Skip it: any actual
+  // query during build throws, but dynamic routes don't query at build time.
+  if (!connectionString && process.env.NEXT_PHASE === "phase-production-build") {
+    const stub = new Proxy(
+      {},
+      {
+        get() {
+          throw new Error("Database is not available during build.");
+        },
+      },
+    );
+    return { db: stub as unknown as PostgresJsDatabase<Schema>, ready: Promise.resolve() };
+  }
+
   if (connectionString) {
     // Server Postgres (SaaS, or a self-host that points at its own server).
     // `prepare: false` is required for Supabase's transaction pooler (port 6543).

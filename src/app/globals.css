@@ -2,6 +2,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Extra breakpoint above FullHD so 2K+ displays get a wider canvas while
+   1920px-wide viewports stay on the 2xl tier. */
+@theme {
+  --breakpoint-3xl: 120rem;
+}
+
 /*
   Design tokens — Apply Copilot · "Private Instrument".
   Cool machined neutrals, cobalt primary, emerald = the live/local signal,

@@ -12,6 +12,7 @@ export default function CoverLetterPage() {
       eyebrow="03 · Draft"
       title="Draft a cover letter"
       intro="A tailored letter grounded strictly in your CV and the role — streamed live, editable, and free of the usual AI clichés."
+      wide
     >
       <CoverLetterView />
     </PageShell>

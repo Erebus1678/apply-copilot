@@ -56,8 +56,10 @@ export function ProviderSwitcher() {
   const [health, setHealth] = useState<HealthMap>({});
   const rootRef = useRef<HTMLDivElement>(null);
 
-  // Load per-provider status once (no secrets; pings keyless local servers).
-  // Health is best-effort — the switcher works without it, so swallow all errors.
+  // Per-provider status (no secrets; pings keyless local servers). Best-effort —
+  // the switcher works without it, so swallow all errors. Re-runs on mount AND
+  // whenever the menu opens: a local server (e.g. 9router) may have come up since
+  // mount, so a once-only check goes stale and shows a working provider as down.
   useEffect(() => {
     const controller = new AbortController();
     void (async () => {
@@ -76,7 +78,7 @@ export function ProviderSwitcher() {
       }
     })();
     return () => controller.abort();
-  }, []);
+  }, [open]);
 
   // Close on outside click / Escape while open.
   useEffect(() => {
