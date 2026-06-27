@@ -1,13 +1,23 @@
+import { networkInterfaces } from "node:os";
 import type { NextConfig } from "next";
+
+// Every non-internal IPv4 of this machine. Used only by `next dev`: without it
+// Next blocks client dev chunks from a non-localhost origin, so the app loads
+// over the LAN but never hydrates (dead buttons). Computed at startup so any
+// self-hoster's LAN IP just works — no hardcoding. Irrelevant in production
+// (`next build`/`start`), which has no such restriction.
+function lanOrigins(): string[] {
+  return Object.values(networkInterfaces())
+    .flat()
+    .filter((net) => net?.family === "IPv4" && !net.internal)
+    .map((net) => net!.address);
+}
 
 const nextConfig: NextConfig = {
   output: "standalone",
   // PGlite ships WASM; keep it external so it isn't bundled by the server build.
   serverExternalPackages: ["@electric-sql/pglite"],
-  // Allow loading the dev server from the LAN (phone / another machine) — without
-  // this, Next blocks client dev chunks from a non-localhost origin, so the page
-  // renders but never hydrates (every button goes dead). Add your machine's LAN IP.
-  allowedDevOrigins: ["192.168.1.136"],
+  allowedDevOrigins: lanOrigins(),
 };
 
 export default nextConfig;
