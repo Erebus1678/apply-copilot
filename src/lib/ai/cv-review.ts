@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { formatLayoutForPrompt, layoutReportSchema } from "@/lib/cv/layout";
 import { compressPromptText } from "./compress";
 import { providerOverrideFields } from "./override";
 
@@ -30,6 +31,7 @@ export type CvReview = z.infer<typeof cvReviewSchema>;
 /** Input contract for the CV review endpoint. */
 export const cvReviewRequestSchema = z.object({
   cv: z.string().min(50, "Paste a fuller CV").max(20_000),
+  layout: layoutReportSchema.nullish(),
   ...providerOverrideFields,
 });
 
@@ -38,9 +40,17 @@ export type CvReviewRequest = z.infer<typeof cvReviewRequestSchema>;
 const SYSTEM_PROMPT =
   "You are a meticulous résumé reviewer and ATS (applicant tracking system) expert. You assess how well a CV parses in automated systems and reads to a human recruiter. You are specific and honest — one real issue with a concrete fix beats generic praise.";
 
+const NO_LAYOUT_GUIDANCE =
+  "No layout information is available (the text was pasted, not parsed from a file). Do NOT give any formatting or visual-layout advice — judge only wording, content, keyword/skill coverage, dates, and spelling/grammar. The text is extracted plain text, so never treat its whitespace or line breaks as the CV's real formatting.";
+
+function layoutGuidance(input: CvReviewRequest): string {
+  if (!input.layout) return NO_LAYOUT_GUIDANCE;
+  return `${formatLayoutForPrompt(input.layout)}\n\nThis report is the ONLY basis for formatting/layout feedback. Raise a formatting issue ONLY if it follows directly from a value above (e.g. columns:2 → an ATS may scramble reading order; "contact in header/footer: yes" → an ATS may miss it; an expected section absent from "detected sections" may have been an image). Any field not listed is UNKNOWN — do not comment on it. Never infer layout from the whitespace or line breaks of the extracted text.`;
+}
+
 export function buildCvReviewPrompt(input: CvReviewRequest): { system: string; prompt: string } {
   return {
     system: SYSTEM_PROMPT,
-    prompt: `Review this CV for ATS-friendliness, content quality, clarity, spelling/grammar, and formatting.\n\n--- CV ---\n${compressPromptText(input.cv)}\n\nYou MUST return an atsScore (0-100) and a summary. List concrete issues — each with the specific problem and an actionable fix — and the CV's genuine strengths. Flag any spelling or grammar mistakes as issues with category "spelling". Do NOT pad with generic advice; report only what this CV actually needs.`,
+    prompt: `Review this CV for ATS-friendliness, content quality, clarity, and spelling/grammar.\n\n--- CV (extracted text) ---\n${compressPromptText(input.cv)}\n\n${layoutGuidance(input)}\n\nYou MUST return an atsScore (0-100) and a summary. List concrete issues — each with the specific problem and an actionable fix — and the CV's genuine strengths. Flag any spelling or grammar mistakes as issues with category "spelling". Do NOT pad with generic advice; report only what this CV actually needs.`,
   };
 }

@@ -1,5 +1,7 @@
 import mammoth from "mammoth";
 import { extractText, getDocumentProxy } from "unpdf";
+import { detectDocxLayout, detectPdfLayout } from "./layout-detect";
+import { emptyLayout, textLayout, type LayoutReport } from "./layout";
 
 /** Upload ceiling — CVs are text; 5 MB is generous for a PDF/DOCX résumé. */
 export const CV_MAX_BYTES = 5 * 1024 * 1024;
@@ -28,21 +30,47 @@ function normalize(text: string): string {
     .trim();
 }
 
-/** Extract normalized plain text from a CV upload. Throws if the file has no text. */
-export async function extractCvText(bytes: ArrayBuffer, kind: CvFileKind): Promise<string> {
-  let raw: string;
+export type ExtractedCv = { text: string; layout: LayoutReport };
+
+/** Layout detection is best-effort — a failure must never block text extraction. */
+async function safeLayout(
+  source: "pdf" | "docx",
+  detect: () => LayoutReport | Promise<LayoutReport>,
+): Promise<LayoutReport> {
+  try {
+    return await detect();
+  } catch {
+    return emptyLayout(source);
+  }
+}
+
+/** Extract normalized text + a structural layout report. Throws if the file has no text. */
+export async function extractCv(bytes: ArrayBuffer, kind: CvFileKind): Promise<ExtractedCv> {
   if (kind === "pdf") {
     const pdf = await getDocumentProxy(new Uint8Array(bytes));
     const { text } = await extractText(pdf, { mergePages: true });
-    raw = Array.isArray(text) ? text.join("\n") : text;
-  } else if (kind === "docx") {
-    const { value } = await mammoth.extractRawText({ buffer: Buffer.from(bytes) });
-    raw = value;
-  } else {
-    raw = new TextDecoder().decode(bytes);
+    const normalized = normalize(Array.isArray(text) ? text.join("\n") : text);
+    if (!normalized) throw new Error("No text found in the file.");
+    return {
+      text: normalized,
+      layout: await safeLayout("pdf", () => detectPdfLayout(pdf, normalized)),
+    };
   }
-
-  const normalized = normalize(raw);
+  if (kind === "docx") {
+    const { value } = await mammoth.extractRawText({ buffer: Buffer.from(bytes) });
+    const normalized = normalize(value);
+    if (!normalized) throw new Error("No text found in the file.");
+    return {
+      text: normalized,
+      layout: await safeLayout("docx", () => detectDocxLayout(bytes, normalized)),
+    };
+  }
+  const normalized = normalize(new TextDecoder().decode(bytes));
   if (!normalized) throw new Error("No text found in the file.");
-  return normalized;
+  return { text: normalized, layout: textLayout(normalized) };
+}
+
+/** Text-only convenience over {@link extractCv}. */
+export async function extractCvText(bytes: ArrayBuffer, kind: CvFileKind): Promise<string> {
+  return (await extractCv(bytes, kind)).text;
 }

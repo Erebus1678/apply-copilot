@@ -10,12 +10,12 @@ describe("uploadCv", () => {
     delete global.fetch;
   });
 
-  it("returns the extracted text on success", async () => {
+  it("returns the extracted text and layout on success", async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ text: "extracted cv" }),
+      json: async () => ({ text: "extracted cv", layout: null }),
     });
-    await expect(uploadCv(file())).resolves.toBe("extracted cv");
+    await expect(uploadCv(file())).resolves.toEqual({ text: "extracted cv", layout: null });
   });
 
   it("throws the server error message on failure", async () => {

@@ -1,4 +1,4 @@
-import { CV_MAX_BYTES, cvKindFromName, extractCvText } from "@/lib/cv/extract";
+import { CV_MAX_BYTES, cvKindFromName, extractCv } from "@/lib/cv/extract";
 import { enforceAiRateLimit } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
@@ -36,8 +36,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const text = await extractCvText(await file.arrayBuffer(), kind);
-    return Response.json({ text });
+    const { text, layout } = await extractCv(await file.arrayBuffer(), kind);
+    return Response.json({ text, layout });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not read the file.";
     return Response.json({ error: message }, { status: 422 });
