@@ -2,12 +2,15 @@
 
 import { useRef, useState } from "react";
 import { uploadCv } from "@/lib/cv/client";
+import type { LayoutReport } from "@/lib/cv/layout";
 import { cn } from "@/lib/utils";
 
 const ACCEPT = ".pdf,.docx,.txt,.md";
 
 type Props = {
-  onExtracted: (text: string) => void;
+  // Reports the extracted text + layout and the original file, so the caller can
+  // both feed the AI and keep the file for a faithful preview.
+  onExtracted: (text: string, layout: LayoutReport | null, file: File) => void;
   disabled?: boolean;
 };
 
@@ -22,7 +25,8 @@ export function CvUpload({ onExtracted, disabled }: Props) {
     setBusy(true);
     setError("");
     try {
-      onExtracted(await uploadCv(file));
+      const { text, layout } = await uploadCv(file);
+      onExtracted(text, layout, file);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Upload failed.");
     } finally {

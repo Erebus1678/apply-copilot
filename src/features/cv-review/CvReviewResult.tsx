@@ -42,6 +42,11 @@ export function CvReviewResult({ review, isLoading, error }: Props) {
     );
   }
 
+  // Before the first tokens arrive there's nothing to render — show a skeleton
+  // so the panel doesn't sit empty under a lone "Checking…" dot.
+  const hasStarted = typeof review?.atsScore === "number" || Boolean(review?.summary);
+  if (isLoading && !hasStarted) return <CvReviewSkeleton />;
+
   const issues = review?.issues?.filter(Boolean) ?? [];
   const strengths = review?.strengths?.filter(Boolean) ?? [];
 
@@ -98,6 +103,30 @@ export function CvReviewResult({ review, isLoading, error }: Props) {
           </ul>
         </section>
       )}
+    </div>
+  );
+}
+
+function CvReviewSkeleton() {
+  return (
+    <div className="flex flex-col gap-6" aria-busy="true" aria-live="polite">
+      <StreamingIndicator label="Checking…" />
+      <div className="flex items-center gap-4">
+        <div className="bg-muted size-16 shrink-0 animate-pulse rounded-full" />
+        <div className="flex w-full flex-col gap-2">
+          <div className="bg-muted h-4 w-32 animate-pulse rounded" />
+          <div className="bg-muted h-3 w-full animate-pulse rounded" />
+          <div className="bg-muted h-3 w-4/5 animate-pulse rounded" />
+        </div>
+      </div>
+      <div className="flex flex-col gap-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="border-border flex flex-col gap-2 rounded-lg border p-3">
+            <div className="bg-muted h-3 w-24 animate-pulse rounded" />
+            <div className="bg-muted h-3 w-full animate-pulse rounded" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

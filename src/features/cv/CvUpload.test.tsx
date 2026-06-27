@@ -7,22 +7,25 @@ import { CvUpload } from "./CvUpload";
 
 const mockUploadCv = uploadCv as jest.Mock;
 
-function pick(text = "parsed cv") {
+function pick(name = "cv.pdf") {
   const input = screen.getByLabelText("CV file");
-  const file = new File([text], "cv.pdf", { type: "application/pdf" });
+  const file = new File(["x"], name, { type: "application/pdf" });
   fireEvent.change(input, { target: { files: [file] } });
+  return file;
 }
 
 describe("CvUpload", () => {
   beforeEach(() => mockUploadCv.mockReset());
 
-  it("calls onExtracted with the extracted text", async () => {
-    mockUploadCv.mockResolvedValue("parsed cv");
+  it("calls onExtracted with the text, layout, and original file", async () => {
+    mockUploadCv.mockResolvedValue({ text: "parsed cv", layout: null });
     const onExtracted = jest.fn();
     render(<CvUpload onExtracted={onExtracted} />);
 
     pick();
-    await waitFor(() => expect(onExtracted).toHaveBeenCalledWith("parsed cv"));
+    await waitFor(() =>
+      expect(onExtracted).toHaveBeenCalledWith("parsed cv", null, expect.any(File)),
+    );
   });
 
   it("shows an error when extraction fails", async () => {
@@ -41,7 +44,7 @@ describe("CvUpload", () => {
   });
 
   it("reflects drag state and reads a dropped file", async () => {
-    mockUploadCv.mockResolvedValue("dropped cv");
+    mockUploadCv.mockResolvedValue({ text: "dropped cv", layout: null });
     const onExtracted = jest.fn();
     render(<CvUpload onExtracted={onExtracted} />);
     const zone = screen.getByRole("button", { name: /upload cv file/i });
@@ -53,6 +56,8 @@ describe("CvUpload", () => {
 
     const file = new File(["x"], "cv.pdf", { type: "application/pdf" });
     fireEvent.drop(zone, { dataTransfer: { files: [file] } });
-    await waitFor(() => expect(onExtracted).toHaveBeenCalledWith("dropped cv"));
+    await waitFor(() =>
+      expect(onExtracted).toHaveBeenCalledWith("dropped cv", null, expect.any(File)),
+    );
   });
 });

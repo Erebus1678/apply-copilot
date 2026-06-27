@@ -9,19 +9,32 @@ let mockState = {
   isLoading: false,
   error: undefined as Error | undefined,
 };
-
 jest.mock("@ai-sdk/react", () => ({ experimental_useObject: () => mockState }));
-jest.mock("@/lib/cv/client", () => ({ uploadCv: jest.fn() }));
+
+type TextCv = { kind: "text"; text: string; layout: null; file: null };
+let mockCv: TextCv | null = null;
+jest.mock("@/features/cv/cvStore", () => ({
+  useCurrentCv: () => ({
+    cv: mockCv,
+    setText: jest.fn(),
+    setUpload: jest.fn(),
+    clear: jest.fn(),
+    loading: false,
+  }),
+}));
 
 import { CvReviewView } from "./CvReviewView";
 
+function textCv(text: string): TextCv {
+  return { kind: "text", text, layout: null, file: null };
+}
 const longCv =
   "Senior frontend engineer with eight years of React, TypeScript, and AWS experience.";
 
 describe("CvReviewView", () => {
   beforeEach(() => {
     submit.mockClear();
-    localStorage.clear();
+    mockCv = null;
     mockState = { object: undefined, submit, stop, isLoading: false, error: undefined };
   });
 
@@ -32,16 +45,16 @@ describe("CvReviewView", () => {
   });
 
   it("does not submit a CV that is too short", () => {
+    mockCv = textCv("short");
     render(<CvReviewView />);
-    fireEvent.change(screen.getByLabelText(/your cv/i), { target: { value: "short" } });
     fireEvent.click(screen.getByRole("button", { name: /check my cv/i }));
     expect(submit).not.toHaveBeenCalled();
   });
 
-  it("submits the CV and active provider", () => {
+  it("submits the CV text, its layout, and the active provider", () => {
+    mockCv = textCv(longCv);
     render(<CvReviewView />);
-    fireEvent.change(screen.getByLabelText(/your cv/i), { target: { value: longCv } });
     fireEvent.click(screen.getByRole("button", { name: /check my cv/i }));
-    expect(submit).toHaveBeenCalledWith(expect.objectContaining({ cv: longCv }));
+    expect(submit).toHaveBeenCalledWith(expect.objectContaining({ cv: longCv, layout: null }));
   });
 });
