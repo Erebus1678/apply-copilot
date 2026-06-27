@@ -13,8 +13,8 @@ const mockFetch = fetchProfiles as jest.Mock;
 const mockCreate = createProfile as jest.Mock;
 const mockRename = renameProfile as jest.Mock;
 
-function profile(id: string, name: string) {
-  return { id, name, createdAt: new Date() };
+function profile(id: string, name: string, parentId: string | null = null) {
+  return { id, name, parentId, createdAt: new Date() };
 }
 
 describe("ProfileSwitcher", () => {
@@ -71,5 +71,30 @@ describe("ProfileSwitcher", () => {
     fireEvent.click(screen.getByRole("button", { name: /^add$/i }));
     await waitFor(() => expect(mockCreate).toHaveBeenCalledWith({ name: "Work" }));
     await waitFor(() => expect(localStorage.getItem("apply-copilot:profile")).toBe("p3"));
+  });
+
+  it("nests tracks under a person and switches to a track", async () => {
+    mockFetch.mockResolvedValue([profile("p1", "Dmytro"), profile("t1", "Frontend", "p1")]);
+    render(<ProfileSwitcher />);
+    fireEvent.click(await screen.findByRole("button", { name: /profile/i }));
+    fireEvent.click(screen.getByRole("menuitemradio", { name: "Frontend" }));
+    await waitFor(() => expect(localStorage.getItem("apply-copilot:profile")).toBe("t1"));
+    expect(await screen.findByRole("button", { name: /dmytro ▸ frontend/i })).toBeInTheDocument();
+  });
+
+  it("creates a track under a person", async () => {
+    mockFetch.mockResolvedValue([profile("p1", "Dmytro")]);
+    mockCreate.mockResolvedValue(profile("t2", "Fullstack", "p1"));
+    render(<ProfileSwitcher />);
+    fireEvent.click(await screen.findByRole("button", { name: /dmytro/i }));
+    fireEvent.click(screen.getByRole("button", { name: /add track to dmytro/i }));
+    fireEvent.change(screen.getByLabelText(/new track for dmytro/i), {
+      target: { value: "Fullstack" },
+    });
+    const form = screen.getByLabelText(/new track for dmytro/i).closest("form");
+    if (form) fireEvent.submit(form);
+    await waitFor(() =>
+      expect(mockCreate).toHaveBeenCalledWith({ name: "Fullstack", parentId: "p1" }),
+    );
   });
 });

@@ -1,4 +1,12 @@
-import { pgEnum, pgTable, text, integer, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  type AnyPgColumn,
+  pgEnum,
+  pgTable,
+  text,
+  integer,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { APPLICATION_STATUSES } from "@/lib/applications/status";
 
 export const applicationStatus = pgEnum("application_status", APPLICATION_STATUSES);
@@ -6,9 +14,15 @@ export const applicationStatus = pgEnum("application_status", APPLICATION_STATUS
 // Local workspaces (no auth). Self-host can share an instance on a LAN; each
 // person picks a profile and their applications are scoped to it. In the SaaS
 // edition the same scoping column maps to an authenticated user instead.
+//
+// A profile may optionally nest under a parent profile: a top-level profile is a
+// "person", and its children are job-target "tracks" (e.g. Frontend, Fullstack),
+// each with its own CV, applications, and stats. All data stays keyed by the leaf
+// profile id, so a track is just a profile that happens to have a parent.
 export const profiles = pgTable("profiles", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  parentId: uuid("parent_id").references((): AnyPgColumn => profiles.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
