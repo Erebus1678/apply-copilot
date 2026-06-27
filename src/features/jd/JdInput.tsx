@@ -66,6 +66,16 @@ export function JdInput({ id, value, onChange, placeholder, disabled, textareaCl
     if (trimmed) void run("url", () => extractJdUrl(trimmed));
   }
 
+  // Paste a screenshot straight into the field (Ctrl+V). Image clipboard items go
+  // through the same OCR path; plain-text paste falls through to the textarea.
+  function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const image = Array.from(e.clipboardData.items).find((i) => i.type.startsWith("image/"));
+    const file = image?.getAsFile();
+    if (!file) return;
+    e.preventDefault();
+    handleFile(file);
+  }
+
   const dropLabel =
     busy === "file"
       ? "Reading…"
@@ -73,7 +83,7 @@ export function JdInput({ id, value, onChange, placeholder, disabled, textareaCl
         ? "Reading screenshot…"
         : dragging
           ? "Drop to read"
-          : "Drop a JD file / screenshot, or click";
+          : "Drop or click a JD file / screenshot — or paste a screenshot into the field";
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -84,6 +94,7 @@ export function JdInput({ id, value, onChange, placeholder, disabled, textareaCl
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onPaste={handlePaste}
         placeholder={placeholder}
         className={cn("min-h-64", textareaClassName)}
         disabled={disabled}
