@@ -1,8 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-
-jest.mock("@/lib/cv/client", () => ({ uploadCv: jest.fn() }));
-import { uploadCv } from "@/lib/cv/client";
-const mockUploadCv = uploadCv as jest.Mock;
+import { render, screen, fireEvent } from "@testing-library/react";
 
 const complete = jest.fn();
 const stop = jest.fn();
@@ -24,6 +20,18 @@ jest.mock("@ai-sdk/react", () => ({
   },
 }));
 
+type TextCv = { kind: "text"; text: string; layout: null; file: null };
+let mockCv: TextCv | null = null;
+jest.mock("@/features/cv/cvStore", () => ({
+  useCurrentCv: () => ({
+    cv: mockCv,
+    setText: jest.fn(),
+    setUpload: jest.fn(),
+    clear: jest.fn(),
+    loading: false,
+  }),
+}));
+
 import { CoverLetterView } from "./CoverLetterView";
 
 const longJd = "Senior React engineer building streaming AI interfaces on Next.js and AWS.";
@@ -32,7 +40,7 @@ const longCv = "Five years of React and TypeScript, shipped multiple Next.js pro
 describe("CoverLetterView", () => {
   beforeEach(() => {
     complete.mockClear();
-    localStorage.clear();
+    mockCv = null;
     mockState = {
       completion: "",
       complete,
@@ -60,9 +68,9 @@ describe("CoverLetterView", () => {
   });
 
   it("drafts with the JD and CV in the request body", () => {
+    mockCv = { kind: "text", text: longCv, layout: null, file: null };
     render(<CoverLetterView />);
     fireEvent.change(screen.getByLabelText(/job description/i), { target: { value: longJd } });
-    fireEvent.change(screen.getByLabelText(/your cv/i), { target: { value: longCv } });
     fireEvent.click(screen.getByRole("button", { name: /draft letter/i }));
     expect(complete).toHaveBeenCalledWith(
       "",
@@ -70,7 +78,7 @@ describe("CoverLetterView", () => {
     );
   });
 
-  it("copies the draft to the clipboard", async () => {
+  it("copies the draft to the clipboard", () => {
     const writeText = jest.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
     mockState = { ...mockState, completion: "Dear hiring manager, ..." };
@@ -84,25 +92,6 @@ describe("CoverLetterView", () => {
     mockState = { ...mockState, error: new Error("provider unreachable") };
     render(<CoverLetterView />);
     expect(screen.getByRole("alert")).toHaveTextContent("provider unreachable");
-  });
-
-  it("fills the CV and clears the warning from an upload", async () => {
-    mockUploadCv.mockResolvedValue("uploaded cv body");
-    render(<CoverLetterView />);
-    // Trigger the missing-CV warning first.
-    fireEvent.change(screen.getByLabelText(/job description/i), { target: { value: longJd } });
-    fireEvent.click(screen.getByRole("button", { name: /draft letter/i }));
-    expect(screen.getByRole("alert")).toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText("CV file"), {
-      target: { files: [new File(["x"], "cv.pdf", { type: "application/pdf" })] },
-    });
-    await waitFor(() =>
-      expect((screen.getByLabelText(/your cv/i) as HTMLTextAreaElement).value).toBe(
-        "uploaded cv body",
-      ),
-    );
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("post-processes the finished draft to strip slop", () => {

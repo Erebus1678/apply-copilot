@@ -1,21 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useCompletion } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { CompressionHint } from "@/components/compression-hint";
 import { StreamingIndicator } from "@/components/streaming-indicator";
 import { cleanAiText } from "@/lib/ai/clean-text";
-import { loadCv, saveCv } from "@/lib/cv-storage";
-import { CvUpload } from "@/features/cv/CvUpload";
+import { CvInput } from "@/features/cv/CvInput";
+import { JdInput } from "@/features/jd/JdInput";
+import { useCurrentCv } from "@/features/cv/cvStore";
 import { overrideFor, useProvider, useProviderConfig } from "@/features/provider/useProviderStore";
 
 export function CoverLetterView() {
   const [jd, setJd] = useState("");
   const [cvError, setCvError] = useState("");
   const [copied, setCopied] = useState(false);
-  const cvRef = useRef<HTMLTextAreaElement>(null);
+  const { cv } = useCurrentCv();
   const provider = useProvider();
   const providerConfig = useProviderConfig();
 
@@ -26,28 +26,19 @@ export function CoverLetterView() {
     onFinish: (_prompt, text) => setCompletion(cleanAiText(text)),
   });
 
-  useEffect(() => {
-    const stored = loadCv();
-    if (stored && cvRef.current && !cvRef.current.value) cvRef.current.value = stored;
-  }, []);
-
-  function fillCv(text: string) {
-    if (cvRef.current) cvRef.current.value = text;
-    saveCv(text);
-    setCvError("");
-  }
-
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    const cv = cvRef.current?.value.trim() ?? "";
+    const cvText = cv?.text.trim() ?? "";
     if (jd.trim().length < 20) return;
-    if (cv.length < 20) {
+    if (cvText.length < 20) {
       setCvError("Add your CV (saved on this device) to ground the letter.");
       return;
     }
     setCvError("");
     setCopied(false);
-    void complete("", { body: { jd: jd.trim(), cv, ...overrideFor(provider, providerConfig) } });
+    void complete("", {
+      body: { jd: jd.trim(), cv: cvText, ...overrideFor(provider, providerConfig) },
+    });
   }
 
   async function handleCopy() {
@@ -72,35 +63,21 @@ export function CoverLetterView() {
   return (
     <div className="grid gap-8 lg:grid-cols-2">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="cl-jd" className="text-sm font-medium">
-            Job description
-          </label>
-          <Textarea
-            id="cl-jd"
-            value={jd}
-            onChange={(e) => setJd(e.target.value)}
-            placeholder="Paste the job description you're applying to…"
-            className="min-h-56"
-            required
-          />
-          <CompressionHint sources={[jd]} />
-        </div>
+        <JdInput
+          id="cl-jd"
+          value={jd}
+          onChange={setJd}
+          placeholder="Paste the job description, drop a file/screenshot, or fetch a link…"
+          disabled={isLoading}
+          textareaClassName="min-h-56"
+        />
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="cl-cv" className="text-sm font-medium">
-            Your CV{" "}
-            <span className="text-muted-foreground font-normal">(saved on this device)</span>
-          </label>
-          <Textarea
+          <CvInput
             id="cl-cv"
-            ref={cvRef}
-            defaultValue=""
-            onChange={(e) => saveCv(e.target.value)}
             placeholder="Paste your CV once — the letter is grounded strictly in it."
-            className="min-h-40"
+            disabled={isLoading}
           />
-          <CvUpload onExtracted={fillCv} disabled={isLoading} />
           {cvError && (
             <p className="text-destructive text-sm" role="alert">
               {cvError}
