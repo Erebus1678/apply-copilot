@@ -1,7 +1,6 @@
 import { listProviderModels } from "./models";
 
-const okJson = (body: unknown) =>
-  ({ ok: true, json: async () => body }) as Response;
+const okJson = (body: unknown) => ({ ok: true, json: async () => body }) as Response;
 
 describe("listProviderModels", () => {
   const fetchMock = jest.fn();
