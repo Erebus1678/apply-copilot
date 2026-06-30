@@ -54,6 +54,8 @@ export function ProviderSwitcher() {
   const config = useProviderConfig();
   const [open, setOpen] = useState(false);
   const [health, setHealth] = useState<HealthMap>({});
+  const [models, setModels] = useState<string[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   // Per-provider status (no secrets; pings keyless local servers). Best-effort —
@@ -80,6 +82,42 @@ export function ProviderSwitcher() {
     return () => controller.abort();
   }, [open]);
 
+  // Live model list for the active provider — pulled from its /models endpoint so
+  // you pick from what the server actually serves instead of typing an id. The BYO
+  // key (if any) rides along so cloud providers list too. Best-effort: on failure
+  // the list stays empty and the UI falls back to a free-text field.
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    const controller = new AbortController();
+    void (async () => {
+      setLoadingModels(true);
+      try {
+        const res = await fetch("/api/providers/models", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ provider: active, apiKey: config[active]?.apiKey }),
+          signal: controller.signal,
+        });
+        const body = (await res.json()) as { data?: string[] };
+        if (cancelled) return;
+        const list = Array.isArray(body?.data) ? body.data : [];
+        setModels(list);
+        // "I don't want to pick a model": default to the first served model when
+        // this provider has none chosen yet, so the dropdown and the request agree.
+        if (list.length > 0 && !config[active]?.model) setProviderModel(active, list[0]);
+      } catch {
+        if (!cancelled) setModels([]);
+      } finally {
+        if (!cancelled) setLoadingModels(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [open, active, config]);
+
   // Close on outside click / Escape while open.
   useEffect(() => {
     if (!open) return;
@@ -100,6 +138,12 @@ export function ProviderSwitcher() {
   const activeSpec = PROVIDERS[active];
   const activeEntry = config[active];
   const activeDot = dotState(active, health, Boolean(activeEntry?.apiKey));
+
+  // Keep a previously-chosen model selectable even if the server isn't currently
+  // serving it (e.g. not loaded yet), so switching providers never drops it.
+  const storedModel = activeEntry?.model;
+  const modelOptions =
+    storedModel && !models.includes(storedModel) ? [storedModel, ...models] : models;
 
   return (
     <div ref={rootRef} className="relative">
@@ -170,22 +214,50 @@ export function ProviderSwitcher() {
                 />
               </label>
             )}
-            <label className="flex flex-col gap-1 text-xs">
-              <span className="text-muted-foreground">Model</span>
-              <input
-                type="text"
-                list={`models-${active}`}
-                value={activeEntry?.model ?? ""}
-                onChange={(e) => setProviderModel(active, e.target.value)}
-                placeholder={activeSpec.defaultModel}
-                className="border-border bg-background focus-visible:ring-ring rounded-md border px-2 py-1 font-mono text-xs outline-none focus-visible:ring-2"
-              />
-              <datalist id={`models-${active}`}>
-                {(SUGGESTED_MODELS[active] ?? [activeSpec.defaultModel]).map((m) => (
-                  <option key={m} value={m} />
-                ))}
-              </datalist>
-            </label>
+            <div className="flex flex-col gap-1 text-xs">
+              <span className="text-muted-foreground flex items-center gap-2">
+                <label htmlFor="provider-model">Model</label>
+                {loadingModels && (
+                  <span className="text-muted-foreground/60" aria-hidden="true">
+                    loading…
+                  </span>
+                )}
+              </span>
+              {models.length > 0 ? (
+                // Real list from the provider — pick, don't type.
+                <select
+                  id="provider-model"
+                  value={storedModel ?? models[0]}
+                  onChange={(e) => setProviderModel(active, e.target.value)}
+                  className="border-border bg-background focus-visible:ring-ring rounded-md border px-2 py-1 font-mono text-xs outline-none focus-visible:ring-2"
+                >
+                  {modelOptions.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                // Fallback: provider unreachable or list unavailable (e.g. cloud
+                // without a key) — keep free text with a few suggestions.
+                <>
+                  <input
+                    id="provider-model"
+                    type="text"
+                    list={`models-${active}`}
+                    value={storedModel ?? ""}
+                    onChange={(e) => setProviderModel(active, e.target.value)}
+                    placeholder={loadingModels ? "Loading models…" : activeSpec.defaultModel}
+                    className="border-border bg-background focus-visible:ring-ring rounded-md border px-2 py-1 font-mono text-xs outline-none focus-visible:ring-2"
+                  />
+                  <datalist id={`models-${active}`}>
+                    {(SUGGESTED_MODELS[active] ?? [activeSpec.defaultModel]).map((m) => (
+                      <option key={m} value={m} />
+                    ))}
+                  </datalist>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
