@@ -28,6 +28,12 @@ describe("buildAnalysisPrompt", () => {
     expect(prompt).toContain("CANDIDATE CV");
     expect(prompt).toContain("10 years of React experience.");
   });
+
+  it("includes the fit rubric and fairness guardrails with a CV", () => {
+    const { prompt, system } = buildAnalysisPrompt({ jd, cv: "10 years of React." });
+    expect(prompt).toContain("85-100"); // banded fit anchors
+    expect(system).toMatch(/never let the candidate's name/i);
+  });
 });
 
 describe("analysisSchema", () => {
