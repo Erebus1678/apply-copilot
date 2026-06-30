@@ -11,6 +11,15 @@
 import { cpSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawn } from "node:child_process";
+import { networkInterfaces } from "node:os";
+
+/** Every non-internal IPv4 of this machine — the addresses other devices use. */
+function lanIps() {
+  return Object.values(networkInterfaces())
+    .flat()
+    .filter((net) => net && net.family === "IPv4" && !net.internal)
+    .map((net) => net.address);
+}
 
 const root = process.cwd();
 const standalone = resolve(root, ".next/standalone");
@@ -37,6 +46,15 @@ const env = {
   // is wiped on every rebuild. An absolute path keeps it stable regardless of cwd.
   PGLITE_PATH: process.env.PGLITE_PATH || resolve(root, "data/pgdata"),
 };
+
+// The standalone server only echoes its bind address (0.0.0.0), so print the
+// real addresses here — the Network URL is what other devices on the Wi-Fi open.
+const ips = lanIps();
+console.log("\n  Apply Copilot — production");
+console.log(`  Local:     http://localhost:${env.PORT}`);
+for (const ip of ips) console.log(`  Network:   http://${ip}:${env.PORT}`);
+if (ips.length > 0) console.log("  (open the Network URL from other devices on your network)");
+console.log("");
 
 const child = spawn(process.execPath, [server], { stdio: "inherit", env });
 child.on("exit", (code) => process.exit(code ?? 0));
