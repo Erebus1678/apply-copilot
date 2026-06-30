@@ -1,6 +1,8 @@
-import { streamText, Output } from "ai";
+import { streamText, generateText, Output } from "ai";
 import { getModel } from "@/lib/ai/provider";
 import { buildCvReviewPrompt, cvReviewRequestSchema, cvReviewSchema } from "@/lib/ai/cv-review";
+import { buildCvExtractPrompt } from "@/lib/ai/cv-extract";
+import { cleanAiText } from "@/lib/ai/clean-text";
 import { maybeCompressViaProxy } from "@/lib/ai/compress-proxy";
 import { toFenceStrippedTextResponse } from "@/lib/ai/json-stream";
 import { enforceAiRateLimit } from "@/lib/http/rate-limit";
@@ -25,7 +27,22 @@ export async function POST(req: Request) {
     return Response.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { system, prompt } = buildCvReviewPrompt(parsed.data);
+  // Thorough mode: extract a structured outline first (best-effort), then review
+  // against it. A failed extraction just falls back to the normal single pass.
+  let outline: string | undefined;
+  if (parsed.data.thorough) {
+    try {
+      const extracted = await generateText({
+        model: getModel(parsed.data),
+        ...buildCvExtractPrompt(parsed.data.cv),
+      });
+      outline = cleanAiText(extracted.text);
+    } catch {
+      outline = undefined;
+    }
+  }
+
+  const { system, prompt } = buildCvReviewPrompt(parsed.data, outline);
   const finalPrompt = await maybeCompressViaProxy(prompt);
 
   try {

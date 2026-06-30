@@ -11,6 +11,7 @@ import { CvReviewResult } from "./CvReviewResult";
 
 export function CvReviewView() {
   const [notice, setNotice] = useState("");
+  const [thorough, setThorough] = useState(false);
   const { cv } = useCurrentCv();
   const provider = useProvider();
   const providerConfig = useProviderConfig();
@@ -27,7 +28,12 @@ export function CvReviewView() {
       return;
     }
     setNotice("");
-    submit({ cv: text, layout: cv?.layout ?? null, ...overrideFor(provider, providerConfig) });
+    submit({
+      cv: text,
+      layout: cv?.layout ?? null,
+      thorough,
+      ...overrideFor(provider, providerConfig),
+    });
   }
 
   return (
@@ -38,6 +44,17 @@ export function CvReviewView() {
           placeholder="Paste your CV — or upload a PDF/DOCX below."
           disabled={isLoading}
         />
+
+        <label className="text-muted-foreground flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={thorough}
+            onChange={(e) => setThorough(e.target.checked)}
+            disabled={isLoading}
+            className="border-input size-4 rounded"
+          />
+          Thorough — extract structure first, then review (slower, fewer slips)
+        </label>
 
         <div className="flex gap-2">
           <Button type="submit" disabled={isLoading}>

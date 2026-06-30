@@ -10,6 +10,10 @@ describe("cvReviewRequestSchema", () => {
   it("accepts a long enough CV", () => {
     expect(cvReviewRequestSchema.safeParse({ cv }).success).toBe(true);
   });
+
+  it("accepts the thorough flag", () => {
+    expect(cvReviewRequestSchema.safeParse({ cv, thorough: true }).success).toBe(true);
+  });
 });
 
 describe("buildCvReviewPrompt", () => {
@@ -19,6 +23,19 @@ describe("buildCvReviewPrompt", () => {
     expect(prompt).toContain(cv);
     expect(prompt).toContain("atsScore");
     expect(prompt).toMatch(/spelling/i);
+  });
+
+  it("includes the ATS rubric and fairness guardrails", () => {
+    const { system, prompt } = buildCvReviewPrompt({ cv });
+    expect(prompt).toContain("90-100"); // banded score anchors
+    expect(system).toMatch(/never let the candidate's name/i);
+  });
+
+  it("injects a structured outline in thorough mode", () => {
+    const outline = "Skills: React, TypeScript\nRoles: Senior FE — 4y";
+    const { prompt } = buildCvReviewPrompt({ cv }, outline);
+    expect(prompt).toContain("STRUCTURED OUTLINE");
+    expect(prompt).toContain(outline);
   });
 });
 

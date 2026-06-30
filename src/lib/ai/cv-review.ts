@@ -33,13 +33,24 @@ export type CvReview = z.infer<typeof cvReviewSchema>;
 export const cvReviewRequestSchema = z.object({
   cv: z.string().min(50, "Paste a fuller CV").max(20_000),
   layout: layoutReportSchema.nullish(),
+  // Thorough mode: extract a structured outline first, then evaluate against it.
+  // Slower (an extra model call), so it's opt-in.
+  thorough: z.boolean().optional(),
   ...providerOverrideFields,
 });
 
 export type CvReviewRequest = z.infer<typeof cvReviewRequestSchema>;
 
 const SYSTEM_PROMPT =
-  "You are a meticulous résumé reviewer and ATS (applicant tracking system) expert. You assess how well a CV parses in automated systems and reads to a human recruiter. You are specific and honest — one real issue with a concrete fix beats generic praise.";
+  "You are a meticulous résumé reviewer and ATS (applicant tracking system) expert. You assess how well a CV parses in automated systems and reads to a human recruiter. You are specific and honest — one real issue with a concrete fix beats generic praise. Judge only the CV's skills, experience, projects, wording, and structure: never let the candidate's name, gender, age, nationality, school/university name, GPA/grades, or city/location affect the score or any feedback.";
+
+// Banded anchors so the ATS score is consistent and explainable, not an arbitrary number.
+const ATS_RUBRIC = `Score \`atsScore\` on this scale:
+- 90-100: clean parse — standard sections, clear headings, strong keyword coverage, no real issues.
+- 75-89: parses fine — minor wording or keyword gaps only.
+- 60-74: parseable but with notable content or structure issues.
+- 40-59: several issues that hurt parsing or recruiter readability.
+- 0-39: hard to parse, or too thin to evaluate.`;
 
 const NO_LAYOUT_GUIDANCE =
   "No layout information is available (the text was pasted, not parsed from a file). Do NOT give any formatting or visual-layout advice — judge only wording, content, keyword/skill coverage, dates, and spelling/grammar. The text is extracted plain text, so never treat its whitespace or line breaks as the CV's real formatting.";
@@ -50,13 +61,22 @@ function layoutGuidance(input: CvReviewRequest): string {
 }
 
 const ISSUE_RULES = `Rules for issues (follow exactly):
+- Each issue's "problem" must quote or name the exact text from the CV it refers to. If you cannot point to specific text, omit the issue.
 - Every "fix" MUST be a concrete change whose wording differs from the original. NEVER restate the same text as the fix (e.g. problem "typo in 'Datadog'" / fix "should be 'Datadog'" with no change). If you cannot propose a real change, do NOT raise the issue.
 - Only flag a spelling/grammar issue when the text is actually wrong. Do not "note" correct words as potential mistakes.
 - You receive EXTRACTED PLAIN TEXT, not the rendered document. You CANNOT see fonts, bold, colours, blank-line spacing, bullet symbols, or whether links are clickable — so never raise issues about any of those, and never infer them from the text's whitespace or line breaks. Formatting/layout feedback may come ONLY from the layout report below.`;
 
-export function buildCvReviewPrompt(input: CvReviewRequest): { system: string; prompt: string } {
+export function buildCvReviewPrompt(
+  input: CvReviewRequest,
+  outline?: string,
+): { system: string; prompt: string } {
+  // Thorough mode prepends a structured outline extracted from the CV first, so
+  // the model evaluates clean structure rather than re-parsing raw text.
+  const outlineBlock = outline?.trim()
+    ? `--- STRUCTURED OUTLINE (extracted from the CV first) ---\n${outline.trim()}\n\nUse this outline to ground your review; the raw extracted text follows.\n\n`
+    : "";
   return {
     system: `${SYSTEM_PROMPT}\n\n${currentDateContext()}`,
-    prompt: `Review this CV for ATS-friendliness, content quality, clarity, and spelling/grammar.\n\n--- CV (extracted text) ---\n${compressPromptText(input.cv)}\n\n${layoutGuidance(input)}\n\n${ISSUE_RULES}\n\nYou MUST return an atsScore (0-100) and a summary. List concrete issues — each with the specific problem and an actionable fix — and the CV's genuine strengths. Flag any spelling or grammar mistakes as issues with category "spelling". Do NOT pad with generic advice; report only what this CV actually needs.`,
+    prompt: `Review this CV for ATS-friendliness, content quality, clarity, and spelling/grammar.\n\n${outlineBlock}--- CV (extracted text) ---\n${compressPromptText(input.cv)}\n\n${layoutGuidance(input)}\n\n${ATS_RUBRIC}\n\n${ISSUE_RULES}\n\nYou MUST return an atsScore (0-100) and a summary. List concrete issues — each with the specific problem and an actionable fix — and the CV's genuine strengths. Flag any spelling or grammar mistakes as issues with category "spelling". Do NOT pad with generic advice; report only what this CV actually needs.`,
   };
 }
