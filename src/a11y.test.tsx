@@ -14,6 +14,8 @@ const app: Application = {
   role: "Senior Frontend Engineer",
   status: "applied",
   fitScore: 82,
+  salary: null,
+  grade: null,
   jobUrl: "https://jobs.acme.com/1",
   notes: "Strong match",
   createdAt: new Date(),
@@ -42,7 +44,14 @@ describe("accessibility", () => {
   it("application card has no axe violations", async () => {
     const { container } = render(
       <main>
-        <ApplicationCard app={app} onStatusChange={() => {}} onDelete={() => {}} />
+        <ApplicationCard
+          app={app}
+          onStatusChange={() => {}}
+          onDelete={() => {}}
+          onDragStart={() => {}}
+          onDragEnd={() => {}}
+          dragging={false}
+        />
       </main>,
     );
     expect(await axe(container)).toHaveNoViolations();

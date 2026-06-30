@@ -23,6 +23,8 @@ function app(over: Partial<Application>): Application {
     role: "Engineer",
     status: "applied",
     fitScore: null,
+    salary: null,
+    grade: null,
     jobUrl: null,
     notes: null,
     createdAt: new Date(),

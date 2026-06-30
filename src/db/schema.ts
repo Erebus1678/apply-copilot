@@ -35,6 +35,10 @@ export const applications = pgTable("applications", {
   role: text("role").notNull(),
   status: applicationStatus("status").notNull().default("saved"),
   fitScore: integer("fit_score"),
+  // Free text so any format works — "$90–110k", "€70k", "competitive", etc.
+  salary: text("salary"),
+  // Expected level/grade — "Junior", "Senior", "L5", "Middle", etc.
+  grade: text("grade"),
   jobUrl: text("job_url"),
   notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

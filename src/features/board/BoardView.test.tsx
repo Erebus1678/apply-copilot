@@ -31,6 +31,8 @@ function makeApp(over: Partial<Application>): Application {
     role: "Engineer",
     status: "saved",
     fitScore: null,
+    salary: null,
+    grade: null,
     jobUrl: null,
     notes: null,
     createdAt: new Date(),

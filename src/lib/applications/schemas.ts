@@ -7,6 +7,8 @@ export const createApplicationSchema = z.object({
   role: z.string().trim().min(1, "Role is required").max(200),
   status: z.enum(APPLICATION_STATUSES).default("saved"),
   fitScore: z.number().int().min(0).max(100).nullable().optional(),
+  salary: z.string().trim().max(100).nullable().optional(),
+  grade: z.string().trim().max(60).nullable().optional(),
   jobUrl: z
     .string()
     .url()
@@ -23,6 +25,8 @@ export const updateApplicationSchema = z
     role: z.string().trim().min(1).max(200),
     status: z.enum(APPLICATION_STATUSES),
     fitScore: z.number().int().min(0).max(100).nullable(),
+    salary: z.string().trim().max(100).nullable(),
+    grade: z.string().trim().max(60).nullable(),
     jobUrl: z
       .string()
       .url()

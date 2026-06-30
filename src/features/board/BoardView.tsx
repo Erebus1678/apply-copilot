@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import type { Application } from "@/db/schema";
 import {
   createApplication,
@@ -26,7 +27,11 @@ export function BoardView() {
   const [error, setError] = useState("");
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
+  const [salary, setSalary] = useState("");
+  const [grade, setGrade] = useState("");
   const [adding, setAdding] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState<ApplicationStatus | null>(null);
   const [importMsg, setImportMsg] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const profileId = useActiveProfile();
@@ -57,11 +62,15 @@ export function BoardView() {
         company: company.trim(),
         role: role.trim(),
         status: "saved",
+        salary: salary.trim() || undefined,
+        grade: grade.trim() || undefined,
         profileId: profileId || undefined,
       });
       setApps((prev) => [created, ...prev]);
       setCompany("");
       setRole("");
+      setSalary("");
+      setGrade("");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to add application");
     } finally {
@@ -102,6 +111,15 @@ export function BoardView() {
     }
   }
 
+  function handleDrop(status: ApplicationStatus) {
+    const id = dragId;
+    setDragId(null);
+    setDragOver(null);
+    if (!id) return;
+    const app = apps.find((a) => a.id === id);
+    if (app && app.status !== status) void handleStatusChange(id, status);
+  }
+
   async function handleDelete(id: string) {
     const snapshot = apps;
     setApps((cur) => cur.filter((a) => a.id !== id));
@@ -123,8 +141,11 @@ export function BoardView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <form onSubmit={handleAdd} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div className="flex flex-1 flex-col gap-1.5">
+      <form
+        onSubmit={handleAdd}
+        className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end"
+      >
+        <div className="flex flex-1 flex-col gap-1.5 sm:min-w-40">
           <label htmlFor="company" className="text-sm font-medium">
             Company
           </label>
@@ -135,7 +156,7 @@ export function BoardView() {
             placeholder="Acme Inc."
           />
         </div>
-        <div className="flex flex-1 flex-col gap-1.5">
+        <div className="flex flex-1 flex-col gap-1.5 sm:min-w-40">
           <label htmlFor="role" className="text-sm font-medium">
             Role
           </label>
@@ -144,6 +165,28 @@ export function BoardView() {
             value={role}
             onChange={(e) => setRole(e.target.value)}
             placeholder="Senior Frontend Engineer"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5 sm:w-32">
+          <label htmlFor="grade" className="text-sm font-medium">
+            Grade
+          </label>
+          <Input
+            id="grade"
+            value={grade}
+            onChange={(e) => setGrade(e.target.value)}
+            placeholder="Senior"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5 sm:w-32">
+          <label htmlFor="salary" className="text-sm font-medium">
+            Expected pay
+          </label>
+          <Input
+            id="salary"
+            value={salary}
+            onChange={(e) => setSalary(e.target.value)}
+            placeholder="$90–110k"
           />
         </div>
         <div className="flex gap-2">
@@ -185,10 +228,26 @@ export function BoardView() {
             return (
               <section
                 key={status}
-                className="flex flex-col gap-3"
+                className={cn(
+                  "flex flex-col gap-3 rounded-lg border border-transparent p-1 transition-colors",
+                  dragOver === status && "border-primary/60 bg-accent/40",
+                )}
                 aria-label={STATUS_LABELS[status]}
+                onDragOver={(e) => {
+                  if (!dragId) return;
+                  e.preventDefault(); // allow drop
+                  if (dragOver !== status) setDragOver(status);
+                }}
+                onDragLeave={(e) => {
+                  // Only clear when leaving the column itself, not moving onto a child.
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOver(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleDrop(status);
+                }}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between px-1">
                   <h2 className="text-sm font-semibold">{STATUS_LABELS[status]}</h2>
                   <span className="text-muted-foreground text-xs tabular-nums">
                     {column.length}
@@ -201,6 +260,12 @@ export function BoardView() {
                       app={app}
                       onStatusChange={handleStatusChange}
                       onDelete={handleDelete}
+                      onDragStart={setDragId}
+                      onDragEnd={() => {
+                        setDragId(null);
+                        setDragOver(null);
+                      }}
+                      dragging={dragId === app.id}
                     />
                   ))}
                 </div>

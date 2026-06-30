@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { Application } from "@/db/schema";
 import {
   APPLICATION_STATUSES,
@@ -17,11 +18,33 @@ type Props = {
   app: Application;
   onStatusChange: (id: string, status: ApplicationStatus) => void;
   onDelete: (id: string) => void;
+  onDragStart: (id: string) => void;
+  onDragEnd: () => void;
+  dragging: boolean;
 };
 
-export function ApplicationCard({ app, onStatusChange, onDelete }: Props) {
+export function ApplicationCard({
+  app,
+  onStatusChange,
+  onDelete,
+  onDragStart,
+  onDragEnd,
+  dragging,
+}: Props) {
   return (
-    <article className="border-border bg-card flex flex-col gap-2 rounded-lg border p-3 shadow-sm">
+    <article
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", app.id);
+        onDragStart(app.id);
+      }}
+      onDragEnd={onDragEnd}
+      className={cn(
+        "border-border bg-card flex cursor-grab flex-col gap-2 rounded-lg border p-3 shadow-sm transition-opacity active:cursor-grabbing",
+        dragging && "opacity-40",
+      )}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-col">
           <span className="truncate leading-tight font-medium">{app.role}</span>
@@ -31,6 +54,13 @@ export function ApplicationCard({ app, onStatusChange, onDelete }: Props) {
           <Badge variant={fitVariant(app.fitScore)}>Fit {app.fitScore}</Badge>
         )}
       </div>
+
+      {(app.grade || app.salary) && (
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          {app.grade && <Badge variant="outline">{app.grade}</Badge>}
+          {app.salary && <span className="text-muted-foreground">{app.salary}</span>}
+        </div>
+      )}
 
       {app.notes && <p className="text-muted-foreground line-clamp-2 text-xs">{app.notes}</p>}
 

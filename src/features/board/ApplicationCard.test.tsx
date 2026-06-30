@@ -9,15 +9,21 @@ const app: Application = {
   role: "Senior Frontend Engineer",
   status: "applied",
   fitScore: 82,
+  salary: null,
+  grade: null,
   jobUrl: "https://jobs.acme.com/1",
   notes: "Strong match",
   createdAt: new Date(),
   updatedAt: new Date(),
 };
 
+const dragProps = { onDragStart: () => {}, onDragEnd: () => {}, dragging: false };
+
 describe("ApplicationCard", () => {
   it("renders role, company, and the fit badge", () => {
-    render(<ApplicationCard app={app} onStatusChange={() => {}} onDelete={() => {}} />);
+    render(
+      <ApplicationCard app={app} onStatusChange={() => {}} onDelete={() => {}} {...dragProps} />,
+    );
     expect(screen.getByText("Senior Frontend Engineer")).toBeInTheDocument();
     expect(screen.getByText("Acme")).toBeInTheDocument();
     expect(screen.getByText(/Fit 82/)).toBeInTheDocument();
@@ -26,7 +32,14 @@ describe("ApplicationCard", () => {
   it("fires status change and delete with the application id", () => {
     const onStatusChange = jest.fn();
     const onDelete = jest.fn();
-    render(<ApplicationCard app={app} onStatusChange={onStatusChange} onDelete={onDelete} />);
+    render(
+      <ApplicationCard
+        app={app}
+        onStatusChange={onStatusChange}
+        onDelete={onDelete}
+        {...dragProps}
+      />,
+    );
 
     fireEvent.change(screen.getByLabelText(/status for senior frontend engineer/i), {
       target: { value: "offer" },
