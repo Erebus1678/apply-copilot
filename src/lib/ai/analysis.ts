@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { compressPromptText } from "./compress";
+import { currentDateContext } from "./context";
 import { providerOverrideFields } from "./override";
 
 export const SENIORITY_LEVELS = ["junior", "mid", "senior", "staff", "lead", "principal"] as const;
@@ -59,7 +60,7 @@ export function buildAnalysisPrompt(input: AnalyzeRequest): { system: string; pr
     ? `\n\n--- CANDIDATE CV ---\n${cv}\n\nA CV is provided above. You MUST populate the \`fit\` object — a score (0-100), matched requirements, gaps, and a summary. Do NOT set fit to null.`
     : "\n\n(No CV provided — set fit to null.)";
   return {
-    system: SYSTEM_PROMPT,
+    system: `${SYSTEM_PROMPT}\n\n${currentDateContext()}`,
     prompt: `Analyze this job description.\n\n--- JOB DESCRIPTION ---\n${compressPromptText(input.jd)}${cvBlock}`,
   };
 }

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { formatLayoutForPrompt, layoutReportSchema } from "@/lib/cv/layout";
 import { compressPromptText } from "./compress";
+import { currentDateContext } from "./context";
 import { providerOverrideFields } from "./override";
 
 export const CV_ISSUE_CATEGORIES = ["ats", "content", "clarity", "spelling", "formatting"] as const;
@@ -48,9 +49,14 @@ function layoutGuidance(input: CvReviewRequest): string {
   return `${formatLayoutForPrompt(input.layout)}\n\nThis report is the ONLY basis for formatting/layout feedback. Raise a formatting issue ONLY if it follows directly from a value above (e.g. columns:2 → an ATS may scramble reading order; "contact in header/footer: yes" → an ATS may miss it; an expected section absent from "detected sections" may have been an image). Any field not listed is UNKNOWN — do not comment on it. Never infer layout from the whitespace or line breaks of the extracted text.`;
 }
 
+const ISSUE_RULES = `Rules for issues (follow exactly):
+- Every "fix" MUST be a concrete change whose wording differs from the original. NEVER restate the same text as the fix (e.g. problem "typo in 'Datadog'" / fix "should be 'Datadog'" with no change). If you cannot propose a real change, do NOT raise the issue.
+- Only flag a spelling/grammar issue when the text is actually wrong. Do not "note" correct words as potential mistakes.
+- You receive EXTRACTED PLAIN TEXT, not the rendered document. You CANNOT see fonts, bold, colours, blank-line spacing, bullet symbols, or whether links are clickable — so never raise issues about any of those, and never infer them from the text's whitespace or line breaks. Formatting/layout feedback may come ONLY from the layout report below.`;
+
 export function buildCvReviewPrompt(input: CvReviewRequest): { system: string; prompt: string } {
   return {
-    system: SYSTEM_PROMPT,
-    prompt: `Review this CV for ATS-friendliness, content quality, clarity, and spelling/grammar.\n\n--- CV (extracted text) ---\n${compressPromptText(input.cv)}\n\n${layoutGuidance(input)}\n\nYou MUST return an atsScore (0-100) and a summary. List concrete issues — each with the specific problem and an actionable fix — and the CV's genuine strengths. Flag any spelling or grammar mistakes as issues with category "spelling". Do NOT pad with generic advice; report only what this CV actually needs.`,
+    system: `${SYSTEM_PROMPT}\n\n${currentDateContext()}`,
+    prompt: `Review this CV for ATS-friendliness, content quality, clarity, and spelling/grammar.\n\n--- CV (extracted text) ---\n${compressPromptText(input.cv)}\n\n${layoutGuidance(input)}\n\n${ISSUE_RULES}\n\nYou MUST return an atsScore (0-100) and a summary. List concrete issues — each with the specific problem and an actionable fix — and the CV's genuine strengths. Flag any spelling or grammar mistakes as issues with category "spelling". Do NOT pad with generic advice; report only what this CV actually needs.`,
   };
 }
