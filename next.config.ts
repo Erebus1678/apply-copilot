@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // PGlite ships WASM; keep it external so it isn't bundled by the server build.
   serverExternalPackages: ["@electric-sql/pglite"],
+  // PGlite loads its postgres.wasm / postgres.data at runtime via fs, so Next's
+  // file tracer can't see them and leaves them out of the standalone bundle —
+  // the embedded DB then aborts on first query (CREATE SCHEMA … RuntimeError:
+  // Aborted). Force its dist assets into the trace so `node server.js` (Docker
+  // and bare-metal alike) ships a working DB.
+  outputFileTracingIncludes: {
+    "/**": ["./node_modules/@electric-sql/pglite/dist/**"],
+  },
   allowedDevOrigins: lanOrigins(),
 };
 

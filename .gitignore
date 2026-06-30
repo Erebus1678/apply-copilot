@@ -47,6 +47,7 @@ yarn-error.log*
 /.looper
 /.looper-oss
 /.looper-providers
+/looper-output
 
 # codegraph local index (per-developer, not part of the app)
 /.codegraph
