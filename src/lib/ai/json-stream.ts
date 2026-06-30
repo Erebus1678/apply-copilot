@@ -22,36 +22,44 @@ export function stripFencesStream(textStream: ReadableStream<string>): ReadableS
     async pull(controller) {
       // Loop until we enqueue something or close, so pull always makes progress
       // (a no-op return wouldn't reliably re-invoke pull, hanging the reader).
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) {
-          const out = buf.replace(TRAILING_FENCE, "");
-          if (out) controller.enqueue(encoder.encode(out));
-          controller.close();
-          return;
-        }
-
-        buf += value;
-
-        if (!leadingStripped) {
-          const open = LEADING_FENCE.exec(buf);
-          if (open) {
-            buf = buf.slice(open[0].length);
-            leadingStripped = true;
-          } else if (PARTIAL_FENCE.test(buf)) {
-            continue; // could still be an opening fence — read more
-          } else {
-            leadingStripped = true; // real content, no fence
+      try {
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) {
+            const out = buf.replace(TRAILING_FENCE, "");
+            if (out) controller.enqueue(encoder.encode(out));
+            controller.close();
+            return;
           }
-        }
 
-        if (buf.length > HOLD) {
-          const emit = buf.slice(0, buf.length - HOLD);
-          buf = buf.slice(buf.length - HOLD);
-          controller.enqueue(encoder.encode(emit));
-          return;
+          buf += value;
+
+          if (!leadingStripped) {
+            const open = LEADING_FENCE.exec(buf);
+            if (open) {
+              buf = buf.slice(open[0].length);
+              leadingStripped = true;
+            } else if (PARTIAL_FENCE.test(buf)) {
+              continue; // could still be an opening fence — read more
+            } else {
+              leadingStripped = true; // real content, no fence
+            }
+          }
+
+          if (buf.length > HOLD) {
+            const emit = buf.slice(0, buf.length - HOLD);
+            buf = buf.slice(buf.length - HOLD);
+            controller.enqueue(encoder.encode(emit));
+            return;
+          }
+          // not enough buffered to safely emit yet — read more
         }
-        // not enough buffered to safely emit yet — read more
+      } catch (err) {
+        // A provider/model failure mid-stream (bad model id, 404, timeout) rejects
+        // the upstream read. Surface it as a clean stream error — the client shows
+        // its error state — instead of letting it bubble into an unhandled rejection
+        // that can take down the server.
+        controller.error(err);
       }
     },
     cancel() {
