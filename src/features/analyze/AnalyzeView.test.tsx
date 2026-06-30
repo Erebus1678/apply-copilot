@@ -36,7 +36,7 @@ describe("AnalyzeView", () => {
 
   it("renders the JD and CV inputs", () => {
     render(<AnalyzeView />);
-    expect(screen.getByLabelText(/job description/i)).toBeInTheDocument();
+    expect(screen.getByLabelText("Job description")).toBeInTheDocument();
     expect(screen.getByLabelText(/your cv/i)).toBeInTheDocument();
   });
 
@@ -44,14 +44,14 @@ describe("AnalyzeView", () => {
     render(<AnalyzeView />);
     const button = screen.getByRole("button", { name: /analyze/i });
     expect(button).toBeDisabled();
-    fireEvent.change(screen.getByLabelText(/job description/i), { target: { value: jd } });
+    fireEvent.change(screen.getByLabelText("Job description"), { target: { value: jd } });
     expect(button).toBeEnabled();
   });
 
   it("submits the JD and the stored CV text", () => {
     mockCv = { kind: "text", text: "10 years of React.", layout: null, file: null };
     render(<AnalyzeView />);
-    fireEvent.change(screen.getByLabelText(/job description/i), { target: { value: jd } });
+    fireEvent.change(screen.getByLabelText("Job description"), { target: { value: jd } });
     fireEvent.click(screen.getByRole("button", { name: /analyze/i }));
     expect(submit).toHaveBeenCalledWith(expect.objectContaining({ jd, cv: "10 years of React." }));
   });

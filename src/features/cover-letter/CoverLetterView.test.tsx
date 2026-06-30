@@ -55,13 +55,13 @@ describe("CoverLetterView", () => {
     render(<CoverLetterView />);
     const button = screen.getByRole("button", { name: /draft letter/i });
     expect(button).toBeDisabled();
-    fireEvent.change(screen.getByLabelText(/job description/i), { target: { value: longJd } });
+    fireEvent.change(screen.getByLabelText("Job description"), { target: { value: longJd } });
     expect(button).toBeEnabled();
   });
 
   it("blocks drafting and warns when the CV is missing", () => {
     render(<CoverLetterView />);
-    fireEvent.change(screen.getByLabelText(/job description/i), { target: { value: longJd } });
+    fireEvent.change(screen.getByLabelText("Job description"), { target: { value: longJd } });
     fireEvent.click(screen.getByRole("button", { name: /draft letter/i }));
     expect(complete).not.toHaveBeenCalled();
     expect(screen.getByRole("alert")).toHaveTextContent(/add your cv/i);
@@ -70,7 +70,7 @@ describe("CoverLetterView", () => {
   it("drafts with the JD and CV in the request body", () => {
     mockCv = { kind: "text", text: longCv, layout: null, file: null };
     render(<CoverLetterView />);
-    fireEvent.change(screen.getByLabelText(/job description/i), { target: { value: longJd } });
+    fireEvent.change(screen.getByLabelText("Job description"), { target: { value: longJd } });
     fireEvent.click(screen.getByRole("button", { name: /draft letter/i }));
     expect(complete).toHaveBeenCalledWith(
       "",
