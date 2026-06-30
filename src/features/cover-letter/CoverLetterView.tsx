@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { StreamingIndicator } from "@/components/streaming-indicator";
 import { cleanAiText } from "@/lib/ai/clean-text";
+import {
+  COVER_LETTER_TONES,
+  COVER_LETTER_TONE_LABELS,
+  type CoverLetterTone,
+} from "@/lib/ai/cover-letter";
 import { CvInput } from "@/features/cv/CvInput";
 import { JdInput } from "@/features/jd/JdInput";
 import { useCurrentCv } from "@/features/cv/cvStore";
@@ -13,6 +18,7 @@ import { overrideFor, useProvider, useProviderConfig } from "@/features/provider
 
 export function CoverLetterView() {
   const [jd, setJd] = useState("");
+  const [tone, setTone] = useState<CoverLetterTone>("professional");
   const [cvError, setCvError] = useState("");
   const [copied, setCopied] = useState(false);
   const { cv } = useCurrentCv();
@@ -37,7 +43,7 @@ export function CoverLetterView() {
     setCvError("");
     setCopied(false);
     void complete("", {
-      body: { jd: jd.trim(), cv: cvText, ...overrideFor(provider, providerConfig) },
+      body: { jd: jd.trim(), cv: cvText, tone, ...overrideFor(provider, providerConfig) },
     });
   }
 
@@ -84,6 +90,22 @@ export function CoverLetterView() {
             </p>
           )}
         </div>
+
+        <label className="flex flex-col gap-1.5 text-sm">
+          <span className="font-medium">Tone</span>
+          <select
+            value={tone}
+            onChange={(e) => setTone(e.target.value as CoverLetterTone)}
+            disabled={isLoading}
+            className="border-input bg-background focus-visible:ring-ring h-10 rounded-md border px-3 text-sm outline-none focus-visible:ring-2 disabled:opacity-50 sm:w-56"
+          >
+            {COVER_LETTER_TONES.map((t) => (
+              <option key={t} value={t}>
+                {COVER_LETTER_TONE_LABELS[t]}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <div className="flex gap-2">
           <Button type="submit" disabled={!canSubmit}>
