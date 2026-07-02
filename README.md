@@ -1,8 +1,6 @@
 # Apply Copilot
 
-<!-- Live CI badge: replace OWNER with your GitHub user/org once the repo is pushed. -->
-
-[![CI](https://github.com/OWNER/apply-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/apply-copilot/actions/workflows/ci.yml)
+[![CI](https://github.com/Erebus1678/apply-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/Erebus1678/apply-copilot/actions/workflows/ci.yml)
 ![Coverage](https://img.shields.io/badge/coverage-%E2%89%A580%25-22c55e)
 
 An AI copilot for job applications. Paste a job description and it extracts the
