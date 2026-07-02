@@ -1,11 +1,22 @@
-/** The HTTP status of a provider/SDK API error (AI SDK's AI_APICallError carries
- *  `statusCode`), or undefined for non-HTTP failures. Duck-typed to stay robust
- *  across SDK versions. */
-function statusOf(error: unknown): number | undefined {
-  if (error && typeof error === "object" && "statusCode" in error) {
-    const code = (error as { statusCode?: unknown }).statusCode;
-    if (typeof code === "number") return code;
+/** The HTTP status of a provider/SDK API error, or undefined for non-HTTP
+ *  failures. AI_APICallError carries `statusCode`; the SDK also wraps retried
+ *  failures in AI_RetryError (real error under `lastError` / `errors[]`) and may
+ *  nest a cause under `cause` — so we unwrap those. Duck-typed to stay robust
+ *  across SDK versions; depth-bounded so a cyclic cause can't loop. */
+function statusOf(error: unknown, depth = 0): number | undefined {
+  if (depth > 5 || !error || typeof error !== "object") return undefined;
+  const e = error as {
+    statusCode?: unknown;
+    lastError?: unknown;
+    errors?: unknown;
+    cause?: unknown;
+  };
+  if (typeof e.statusCode === "number") return e.statusCode;
+  if (e.lastError != null) return statusOf(e.lastError, depth + 1);
+  if (Array.isArray(e.errors) && e.errors.length > 0) {
+    return statusOf(e.errors[e.errors.length - 1], depth + 1);
   }
+  if (e.cause != null) return statusOf(e.cause, depth + 1);
   return undefined;
 }
 
@@ -25,7 +36,9 @@ export function describeAiError(error: unknown): string {
     case 404:
       return "The provider couldn't find that model. Check the model id for this provider.";
     case 429:
-      return "The provider is rate-limiting requests. Wait a moment and try again.";
+      // OpenAI-compatible providers use 429 for both transient rate limits and
+      // hard quota/billing exhaustion (insufficient_quota) — cover both.
+      return "The provider is rate-limiting you or is out of quota. Wait and retry, check the provider's plan/billing, or switch model or provider.";
     default:
       return "The AI request failed. Try again, or switch model or provider.";
   }
