@@ -25,6 +25,21 @@ describe("describeAiError", () => {
     expect(describeAiError(withStatus(429))).toMatch(/rate-limiting/i);
   });
 
+  it("unwraps an AI_RetryError to the underlying status (lastError)", () => {
+    // Shape of AI_RetryError after 3 failed retries of a 429 insufficient_quota.
+    const retry = Object.assign(new Error("Failed after 3 attempts"), {
+      reason: "maxRetriesExceeded",
+      lastError: withStatus(429),
+      errors: [withStatus(429), withStatus(429), withStatus(429)],
+    });
+    expect(describeAiError(retry)).toMatch(/rate-limiting you or is out of quota/i);
+  });
+
+  it("unwraps a nested cause to the underlying status", () => {
+    const wrapped = Object.assign(new Error("pipe failed"), { cause: withStatus(402) });
+    expect(describeAiError(wrapped)).toMatch(/needs credits/i);
+  });
+
   it("falls back to a generic message for unknown / non-HTTP errors", () => {
     expect(describeAiError(new Error("socket hang up"))).toMatch(/try again, or switch/i);
     expect(describeAiError("weird")).toMatch(/try again, or switch/i);
