@@ -56,4 +56,20 @@ describe("stripFencesStream", () => {
     expect(errorSpy).toHaveBeenCalled();
     errorSpy.mockRestore();
   });
+
+  it("does not log a teardown 'Controller is already closed' error as a provider failure", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    // Consumer tore the stream down first (client disconnect / body timeout).
+    const upstream = new ReadableStream<string>({
+      start(controller) {
+        controller.enqueue('{"a":');
+        controller.error(new TypeError("Invalid state: Controller is already closed"));
+      },
+    });
+
+    await expect(readAll(stripFencesStream(upstream))).rejects.toThrow(/failed partway through/);
+    // Teardown noise must not be logged as an "[ai:stream]" provider error.
+    expect(errorSpy).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
 });
