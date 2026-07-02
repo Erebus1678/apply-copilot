@@ -9,7 +9,8 @@ const config: Config = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
-  testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/e2e/"],
+  // e2e/ and scripts/ hold Playwright specs (@playwright/test) — not Jest tests.
+  testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/e2e/", "<rootDir>/scripts/"],
   collectCoverageFrom: [
     "src/**/*.{ts,tsx}",
     "!src/**/*.stories.{ts,tsx}",
