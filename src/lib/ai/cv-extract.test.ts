@@ -1,7 +1,8 @@
 import { buildCvExtractPrompt } from "./cv-extract";
 
 describe("buildCvExtractPrompt", () => {
-  const cv = "Senior frontend engineer, 8 years of React and TypeScript. Built streaming dashboards.";
+  const cv =
+    "Senior frontend engineer, 8 years of React and TypeScript. Built streaming dashboards.";
 
   it("embeds the CV and asks for a labelled, factual outline", () => {
     const { prompt } = buildCvExtractPrompt(cv);
