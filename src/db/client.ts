@@ -18,7 +18,14 @@ const globalForDb = globalThis as unknown as {
 
 const connectionString = process.env.DATABASE_URL;
 
-function makeDb(): { db: PostgresJsDatabase<Schema>; ready: Promise<unknown> } {
+/** Which driver resolved, and (for PGlite) the datadir — logged once at startup. */
+export type DbInfo = { driver: "pglite" | "postgres" | "stub"; path?: string };
+
+function makeDb(): {
+  db: PostgresJsDatabase<Schema>;
+  ready: Promise<unknown>;
+  info: DbInfo;
+} {
   // During `next build`, route modules are imported for analysis but their
   // handlers never run. Opening the real PGlite datadir here would race a running
   // dev server (PGlite is single-process) and can corrupt it. Skip it: any actual
@@ -32,7 +39,11 @@ function makeDb(): { db: PostgresJsDatabase<Schema>; ready: Promise<unknown> } {
         },
       },
     );
-    return { db: stub as unknown as PostgresJsDatabase<Schema>, ready: Promise.resolve() };
+    return {
+      db: stub as unknown as PostgresJsDatabase<Schema>,
+      ready: Promise.resolve(),
+      info: { driver: "stub" },
+    };
   }
 
   if (connectionString) {
@@ -40,7 +51,11 @@ function makeDb(): { db: PostgresJsDatabase<Schema>; ready: Promise<unknown> } {
     // `prepare: false` is required for Supabase's transaction pooler (port 6543).
     const client = globalForDb.pgClient ?? postgres(connectionString, { prepare: false });
     globalForDb.pgClient = client;
-    return { db: drizzlePg(client, { schema }), ready: Promise.resolve() };
+    return {
+      db: drizzlePg(client, { schema }),
+      ready: Promise.resolve(),
+      info: { driver: "postgres" },
+    };
   }
 
   // OSS default: embedded Postgres (PGlite), file-backed — zero external service.
@@ -64,7 +79,11 @@ function makeDb(): { db: PostgresJsDatabase<Schema>; ready: Promise<unknown> } {
   globalForDb.dbReady = ready;
   // PGlite and postgres-js return slightly different drizzle types but
   // share drizzle's identical pg query API; cast unifies the type for callers.
-  return { db: pgliteDb as unknown as PostgresJsDatabase<Schema>, ready };
+  return {
+    db: pgliteDb as unknown as PostgresJsDatabase<Schema>,
+    ready,
+    info: { driver: "pglite", path: resolve(pglitePath) },
+  };
 }
 
 const made = makeDb();
@@ -73,3 +92,6 @@ export const db = made.db;
 
 /** Resolves once the local schema is ready (PGlite boot migration); instant for server Postgres. */
 export const dbReady = made.ready;
+
+/** Resolved driver + datadir, for the one-time startup log. */
+export const dbInfo = made.info;

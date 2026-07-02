@@ -1,10 +1,12 @@
 import mammoth from "mammoth";
 import { extractText, getDocumentProxy } from "unpdf";
+import { envInt } from "@/lib/config/env";
 import { detectDocxLayout, detectPdfLayout } from "./layout-detect";
 import { emptyLayout, textLayout, type LayoutReport } from "./layout";
 
-/** Upload ceiling — CVs are text; 5 MB is generous for a PDF/DOCX résumé. */
-export const CV_MAX_BYTES = 5 * 1024 * 1024;
+/** Upload ceiling — CVs are text; 5 MB is generous for a PDF/DOCX résumé. Raise
+ *  via CV_MAX_BYTES (e.g. for high-res scans); floor of 1 KB guards a typo. */
+export const CV_MAX_BYTES = envInt("CV_MAX_BYTES", 5 * 1024 * 1024, 1024);
 
 export type CvFileKind = "pdf" | "docx" | "text";
 

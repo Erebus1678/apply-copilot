@@ -24,7 +24,8 @@ export async function POST(req: Request) {
     return Response.json({ error: "The file is empty." }, { status: 400 });
   }
   if (file.size > CV_MAX_BYTES) {
-    return Response.json({ error: "File is too large (max 5 MB)." }, { status: 413 });
+    const maxMb = Math.floor(CV_MAX_BYTES / (1024 * 1024));
+    return Response.json({ error: `File is too large (max ${maxMb} MB).` }, { status: 413 });
   }
 
   const kind = cvKindFromName(file.name);
