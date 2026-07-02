@@ -51,9 +51,24 @@ describe("stripFencesStream", () => {
       },
     });
 
-    await expect(readAll(stripFencesStream(upstream))).rejects.toThrow(/failed partway through/);
+    await expect(readAll(stripFencesStream(upstream))).rejects.toThrow(/try again, or switch/i);
     // The raw provider error is logged server-side, never surfaced to the client.
     expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+
+  it("surfaces a paid-model (402) provider error as an actionable credits message", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const apiError = Object.assign(new Error("[402]: Paid Model - Credits Required"), {
+      statusCode: 402,
+    });
+    const upstream = new ReadableStream<string>({
+      start(controller) {
+        controller.error(apiError);
+      },
+    });
+
+    await expect(readAll(stripFencesStream(upstream))).rejects.toThrow(/needs credits/i);
     errorSpy.mockRestore();
   });
 
@@ -67,7 +82,7 @@ describe("stripFencesStream", () => {
       },
     });
 
-    await expect(readAll(stripFencesStream(upstream))).rejects.toThrow(/failed partway through/);
+    await expect(readAll(stripFencesStream(upstream))).rejects.toThrow(/try again, or switch/i);
     // Teardown noise must not be logged as an "[ai:stream]" provider error.
     expect(errorSpy).not.toHaveBeenCalled();
     errorSpy.mockRestore();

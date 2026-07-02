@@ -7,6 +7,8 @@
 //
 // HOLD chars are kept back each tick so a *trailing* fence forming at the end can
 // be removed on flush; the leading fence is detected and dropped up front.
+import { describeAiError } from "./errors";
+
 const HOLD = 4; // enough to buffer a forming "```" (+ optional newline)
 const LEADING_FENCE = /^\s*```[a-zA-Z0-9]*[ \t]*\r?\n/;
 const PARTIAL_FENCE = /^\s*`{1,3}[a-zA-Z0-9]*$/;
@@ -69,11 +71,7 @@ export function stripFencesStream(textStream: ReadableStream<string>): ReadableS
           err instanceof TypeError && err.message.includes("Controller is already closed");
         if (!teardown) console.error("[ai:stream]", err);
         try {
-          controller.error(
-            new Error(
-              "The AI response failed partway through. Try again, or switch model/provider.",
-            ),
-          );
+          controller.error(new Error(describeAiError(err)));
         } catch {
           // Controller was already closed — nothing left to surface.
         }
