@@ -35,4 +35,16 @@ describe("AnalysisResult", () => {
     expect(screen.getByText("mid")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /cv fit score: 30 out of 100/i })).toBeInTheDocument();
   });
+
+  it("renders without a fit section when fit is null (JD analyzed without a CV)", () => {
+    const analysis: DeepPartial<Analysis> = {
+      techStack: [{ name: "Go", importance: "required" }],
+      seniority: "senior",
+      fit: null,
+    };
+    // Must not throw on null fit; the tech stack still renders, no fit ring.
+    render(<AnalysisResult analysis={analysis} isLoading={false} error={undefined} />);
+    expect(screen.getByText("Go")).toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: /cv fit score/i })).not.toBeInTheDocument();
+  });
 });

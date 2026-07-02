@@ -1,3 +1,5 @@
+import { envInt } from "@/lib/config/env";
+
 type Bucket = { count: number; resetAt: number };
 
 const buckets = new Map<string, Bucket>();
@@ -34,8 +36,10 @@ function clientIp(req: Request): string {
   return req.headers.get("x-real-ip") ?? "anonymous";
 }
 
-const AI_LIMIT = 20;
-const AI_WINDOW_MS = 60_000;
+// Tunable per deployment; defaults match the previous hardcoded 20 req / 60s so
+// zero-config self-host is unchanged. Floors keep a typo from disabling the guard.
+const AI_LIMIT = envInt("AI_RATE_LIMIT", 20);
+const AI_WINDOW_MS = envInt("AI_RATE_WINDOW_MS", 60_000, 1000);
 
 /** Guard the AI endpoints: returns a 429 Response when over budget, else null. */
 export function enforceAiRateLimit(req: Request): Response | null {

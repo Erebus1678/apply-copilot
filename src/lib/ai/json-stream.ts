@@ -56,10 +56,15 @@ export function stripFencesStream(textStream: ReadableStream<string>): ReadableS
         }
       } catch (err) {
         // A provider/model failure mid-stream (bad model id, 404, timeout) rejects
-        // the upstream read. Surface it as a clean stream error — the client shows
-        // its error state — instead of letting it bubble into an unhandled rejection
-        // that can take down the server.
-        controller.error(err);
+        // the upstream read. Log the real error server-side, then fail the stream
+        // with a clean, provider-agnostic message — useObject/useCompletion surface
+        // it as `error`, so the client shows "…failed partway…" instead of a silent
+        // stop or a leaked provider message. We deliberately don't inline a JSON
+        // sentinel: it would corrupt the partial-object parser mid-parse.
+        console.error("[ai:stream]", err);
+        controller.error(
+          new Error("The AI response failed partway through. Try again, or switch model/provider."),
+        );
       }
     },
     cancel() {

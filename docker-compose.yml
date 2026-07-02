@@ -16,10 +16,23 @@
 # README → "Self-hosting & LAN sharing".
 services:
   app:
+    # Build from source (default). To skip the build and pull the prebuilt image
+    # published by .github/workflows/publish.yml, comment out `build: .` and use:
+    #   image: ghcr.io/<owner>/apply-copilot:latest
     build: .
     restart: unless-stopped
     ports:
-      - "3000:3000" # published on all interfaces → reachable from your LAN
+      # Host port is tunable (PORT=8080 docker compose up); the container always
+      # listens on 3000. Published on all interfaces → reachable from your LAN.
+      - "${PORT:-3000}:3000"
+    healthcheck:
+      # /api/providers needs no DB, so a 200 means the server is actually serving.
+      test:
+        ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/providers"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     environment:
       # AI provider is optional — you can also choose it in the header per device.
       AI_PROVIDER: ${AI_PROVIDER:-local}
@@ -32,6 +45,9 @@ services:
       # Embedded PGlite lives here; the named volume keeps it across restarts.
       # Set DATABASE_URL instead to use a shared Postgres server.
       DATABASE_URL: ${DATABASE_URL:-}
+      # Absolute path inside the container (the app-data volume is mounted at
+      # /app/data). Set an absolute PGLITE_PATH if you run bare-metal under systemd,
+      # where the working directory isn't the repo root.
       PGLITE_PATH: /app/data/pgdata
     volumes:
       - app-data:/app/data

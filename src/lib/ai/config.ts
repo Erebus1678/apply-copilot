@@ -51,3 +51,13 @@ export function getAiConfig(): AiConfig {
     providers: Object.fromEntries(entries) as Record<ProviderId, ResolvedProvider>,
   };
 }
+
+/**
+ * The value of AI_PROVIDER when it is set but not a known provider id — in which
+ * case getAiConfig() silently falls back to "local". Returns undefined when
+ * AI_PROVIDER is unset or valid. Used at startup to warn about a typo'd provider.
+ */
+export function invalidRequestedProvider(): string | undefined {
+  const requested = env(process.env.AI_PROVIDER);
+  return requested && !isProviderId(requested) ? requested : undefined;
+}

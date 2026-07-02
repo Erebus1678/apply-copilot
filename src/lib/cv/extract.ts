@@ -1,10 +1,12 @@
 import mammoth from "mammoth";
 import { extractText, getDocumentProxy } from "unpdf";
+import { envInt } from "@/lib/config/env";
 import { detectDocxLayout, detectPdfLayout } from "./layout-detect";
 import { emptyLayout, textLayout, type LayoutReport } from "./layout";
 
-/** Upload ceiling — CVs are text; 5 MB is generous for a PDF/DOCX résumé. */
-export const CV_MAX_BYTES = 5 * 1024 * 1024;
+/** Upload ceiling — CVs are text; 5 MB is generous for a PDF/DOCX résumé. Raise
+ *  via CV_MAX_BYTES (e.g. for high-res scans); floor of 1 KB guards a typo. */
+export const CV_MAX_BYTES = envInt("CV_MAX_BYTES", 5 * 1024 * 1024, 1024);
 
 export type CvFileKind = "pdf" | "docx" | "text";
 
@@ -50,7 +52,14 @@ export async function extractCv(bytes: ArrayBuffer, kind: CvFileKind): Promise<E
     const pdf = await getDocumentProxy(new Uint8Array(bytes));
     const { text } = await extractText(pdf, { mergePages: true });
     const normalized = normalize(Array.isArray(text) ? text.join("\n") : text);
-    if (!normalized) throw new Error("No text found in the file.");
+    if (!normalized) {
+      // A PDF with no extractable text is almost always a scan (image-only) or
+      // an encrypted file — tell the user why instead of a blank "no text".
+      throw new Error(
+        "This PDF has no selectable text — it looks like a scan or is encrypted. " +
+          "Export a text-based PDF or DOCX, or paste the text directly.",
+      );
+    }
     return {
       text: normalized,
       layout: await safeLayout("pdf", () => detectPdfLayout(pdf, normalized)),

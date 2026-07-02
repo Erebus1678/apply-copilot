@@ -155,4 +155,59 @@ describe("BoardView", () => {
     await screen.findByRole("alert");
     expect(await screen.findByLabelText(/status for frontend engineer/i)).toHaveValue("saved");
   });
+
+  it("moves a card to another column via drag-and-drop and persists the new status", async () => {
+    mocked.fetchApplications.mockResolvedValue([
+      makeApp({ id: "a1", role: "Frontend Engineer", status: "saved" }),
+    ]);
+    mocked.patchApplication.mockResolvedValue(makeApp({ id: "a1", status: "applied" }));
+    render(<BoardView />);
+    const card = (await screen.findByText("Frontend Engineer")).closest("article")!;
+    const appliedColumn = screen.getByRole("region", { name: "Applied" });
+    const dataTransfer = { setData: jest.fn(), getData: jest.fn(), effectAllowed: "" };
+
+    fireEvent.dragStart(card, { dataTransfer });
+    fireEvent.dragOver(appliedColumn, { dataTransfer });
+    fireEvent.drop(appliedColumn, { dataTransfer });
+
+    await waitFor(() =>
+      expect(mocked.patchApplication).toHaveBeenCalledWith("a1", { status: "applied" }),
+    );
+  });
+
+  it("does not persist when a card is dropped on its own column", async () => {
+    mocked.fetchApplications.mockResolvedValue([
+      makeApp({ id: "a1", role: "Frontend Engineer", status: "saved" }),
+    ]);
+    render(<BoardView />);
+    const card = (await screen.findByText("Frontend Engineer")).closest("article")!;
+    const savedColumn = screen.getByRole("region", { name: "Saved" });
+    const dataTransfer = { setData: jest.fn(), getData: jest.fn(), effectAllowed: "" };
+
+    fireEvent.dragStart(card, { dataTransfer });
+    fireEvent.drop(savedColumn, { dataTransfer });
+
+    expect(mocked.patchApplication).not.toHaveBeenCalled();
+  });
+
+  it("names skipped rows when some import rows are invalid", async () => {
+    mocked.importApplications.mockResolvedValue([
+      makeApp({ id: "imp1", company: "Good Co", role: "Engineer" }),
+    ]);
+    render(<BoardView />);
+    await waitFor(() => expect(mocked.fetchApplications).toHaveBeenCalled());
+
+    // One valid row, one missing the required role → skipped and named.
+    const file = fileWithText(
+      JSON.stringify([{ company: "Good Co", role: "Engineer" }, { company: "No Role Co" }]),
+      "jobs.json",
+    );
+    fireEvent.change(screen.getByLabelText(/import applications/i), { target: { files: [file] } });
+
+    await waitFor(() => expect(mocked.importApplications).toHaveBeenCalled());
+    const status = await screen.findByRole("status");
+    expect(status).toHaveTextContent("Imported 1");
+    expect(status).toHaveTextContent(/skipped 1/i);
+    expect(status).toHaveTextContent(/Row 2/);
+  });
 });

@@ -26,6 +26,21 @@ const nextConfig: NextConfig = {
     "/**": ["./node_modules/@electric-sql/pglite/dist/**"],
   },
   allowedDevOrigins: lanOrigins(),
+  // Defense-in-depth headers for every response. No CSP here: the theme-boot
+  // inline script in layout.tsx would need a per-request nonce, which is a SaaS
+  // concern (see EDITIONS.md) — these three are safe for a same-origin local app.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

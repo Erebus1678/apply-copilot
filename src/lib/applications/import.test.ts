@@ -1,4 +1,19 @@
-import { parseImportFile } from "./import";
+import { parseImportFile, summarizeSkipped } from "./import";
+
+describe("summarizeSkipped", () => {
+  it("returns an empty string when nothing was skipped", () => {
+    expect(summarizeSkipped([])).toBe("");
+  });
+
+  it("joins up to max messages", () => {
+    expect(summarizeSkipped(["Row 1: a — x", "Row 2: b — y"])).toBe("Row 1: a — x; Row 2: b — y");
+  });
+
+  it("appends a +N more tail past the cap", () => {
+    const errors = ["e1", "e2", "e3", "e4", "e5"];
+    expect(summarizeSkipped(errors, 3)).toBe("e1; e2; e3 (+2 more)");
+  });
+});
 
 describe("parseImportFile", () => {
   it("parses a JSON array of applications", () => {

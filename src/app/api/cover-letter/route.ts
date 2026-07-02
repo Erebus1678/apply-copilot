@@ -2,6 +2,7 @@ import { streamText } from "ai";
 import { getModel } from "@/lib/ai/provider";
 import { coverLetterRequestSchema, buildCoverLetterPrompt } from "@/lib/ai/cover-letter";
 import { maybeCompressViaProxy } from "@/lib/ai/compress-proxy";
+import { aiErrorResponse } from "@/lib/ai/errors";
 import { enforceAiRateLimit } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
@@ -31,7 +32,6 @@ export async function POST(req: Request) {
     const result = streamText({ model: getModel(parsed.data), system, prompt: finalPrompt });
     return result.toTextStreamResponse();
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Cover letter generation failed";
-    return Response.json({ error: message }, { status: 500 });
+    return aiErrorResponse(error, "cover-letter");
   }
 }
