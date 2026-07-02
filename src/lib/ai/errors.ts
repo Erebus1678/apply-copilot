@@ -45,11 +45,26 @@ export function describeAiError(error: unknown): string {
 }
 
 /**
- * Turn a provider/SDK error into a safe API response: log the real thing
- * server-side for debugging, return a clean, provider-agnostic message (specific
- * when the status code is known) so no provider/key detail leaks to the caller.
+ * Log a provider/SDK error as ONE clean, bounded server-side line: the
+ * categorized user message plus the error's own short message. Deliberately NOT
+ * `console.error(error)` — a raw AISDK error object serializes `requestBodyValues`
+ * (the full prompt, i.e. the user's CV/JD text) and other noise into the logs.
+ * This is the single logging path for every AI failure (routes' onError,
+ * stream teardown, and aiErrorResponse) so nothing dumps the raw object.
+ */
+export function logAiError(error: unknown, context: string): void {
+  const detail = (error instanceof Error ? error.message : String(error))
+    .replace(/\s+/g, " ")
+    .slice(0, 300);
+  console.error(`[ai:${context}] ${describeAiError(error)} — ${detail}`);
+}
+
+/**
+ * Turn a provider/SDK error into a safe API response: log it cleanly server-side
+ * for debugging, return a clean, provider-agnostic message (specific when the
+ * status code is known) so no provider/key detail leaks to the caller.
  */
 export function aiErrorResponse(error: unknown, context: string): Response {
-  console.error(`[ai:${context}]`, error);
+  logAiError(error, context);
   return Response.json({ error: describeAiError(error) }, { status: 502 });
 }

@@ -2,7 +2,7 @@ import { streamText } from "ai";
 import { getModel } from "@/lib/ai/provider";
 import { coverLetterRequestSchema, buildCoverLetterPrompt } from "@/lib/ai/cover-letter";
 import { maybeCompressViaProxy } from "@/lib/ai/compress-proxy";
-import { aiErrorResponse } from "@/lib/ai/errors";
+import { aiErrorResponse, logAiError } from "@/lib/ai/errors";
 import { enforceAiRateLimit } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
@@ -29,7 +29,12 @@ export async function POST(req: Request) {
   const finalPrompt = await maybeCompressViaProxy(prompt);
 
   try {
-    const result = streamText({ model: getModel(parsed.data), system, prompt: finalPrompt });
+    const result = streamText({
+      model: getModel(parsed.data),
+      system,
+      prompt: finalPrompt,
+      onError: ({ error }) => logAiError(error, "cover-letter"),
+    });
     return result.toTextStreamResponse();
   } catch (error) {
     return aiErrorResponse(error, "cover-letter");

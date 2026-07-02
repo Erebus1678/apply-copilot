@@ -7,7 +7,7 @@
 //
 // HOLD chars are kept back each tick so a *trailing* fence forming at the end can
 // be removed on flush; the leading fence is detected and dropped up front.
-import { describeAiError } from "./errors";
+import { describeAiError, logAiError } from "./errors";
 
 const HOLD = 4; // enough to buffer a forming "```" (+ optional newline)
 const LEADING_FENCE = /^\s*```[a-zA-Z0-9]*[ \t]*\r?\n/;
@@ -69,7 +69,7 @@ export function stripFencesStream(textStream: ReadableStream<string>): ReadableS
         // teardown noise, not a provider failure, so don't log it as one.
         const teardown =
           err instanceof TypeError && err.message.includes("Controller is already closed");
-        if (!teardown) console.error("[ai:stream]", err);
+        if (!teardown) logAiError(err, "stream");
         try {
           controller.error(new Error(describeAiError(err)));
         } catch {
