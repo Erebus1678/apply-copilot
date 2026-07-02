@@ -11,10 +11,10 @@ import {
   COVER_LETTER_TONE_LABELS,
   type CoverLetterTone,
 } from "@/lib/ai/cover-letter";
-import { CvInput } from "@/features/cv/CvInput";
-import { JdInput } from "@/features/jd/JdInput";
-import { useCurrentCv } from "@/features/cv/cvStore";
-import { overrideFor, useProvider, useProviderConfig } from "@/features/provider/useProviderStore";
+import { CvInput } from "@/shared/cv/CvInput";
+import { JdInput } from "@/shared/jd/JdInput";
+import { useCurrentCv } from "@/shared/cv/cvStore";
+import { useProviderOverride } from "@/shared/provider/useProviderStore";
 
 export function CoverLetterView() {
   const [jd, setJd] = useState("");
@@ -22,8 +22,7 @@ export function CoverLetterView() {
   const [cvError, setCvError] = useState("");
   const [copied, setCopied] = useState(false);
   const { cv } = useCurrentCv();
-  const provider = useProvider();
-  const providerConfig = useProviderConfig();
+  const providerOverride = useProviderOverride();
 
   const { completion, complete, setCompletion, isLoading, stop, error } = useCompletion({
     api: "/api/cover-letter",
@@ -43,7 +42,7 @@ export function CoverLetterView() {
     setCvError("");
     setCopied(false);
     void complete("", {
-      body: { jd: jd.trim(), cv: cvText, tone, ...overrideFor(provider, providerConfig) },
+      body: { jd: jd.trim(), cv: cvText, tone, ...providerOverride },
     });
   }
 

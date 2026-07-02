@@ -6,7 +6,7 @@ import type { Application } from "@/db/schema";
 import { fetchApplications } from "@/lib/applications/client";
 import { computeApplicationStats } from "@/lib/applications/stats";
 import { APPLICATION_STATUSES, STATUS_LABELS } from "@/lib/applications/status";
-import { useActiveProfile } from "@/features/profile/useProfileStore";
+import { useActiveProfile } from "@/shared/profile/useProfileStore";
 
 export function StatsView() {
   const [apps, setApps] = useState<Application[]>([]);

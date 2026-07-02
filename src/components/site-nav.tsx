@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { ProfileSwitcher } from "@/features/profile/ProfileSwitcher";
-import { ProviderSwitcher } from "@/features/provider/ProviderSwitcher";
-import { ThemeToggle } from "@/features/theme/ThemeToggle";
+import { ProfileSwitcher } from "@/shared/profile/ProfileSwitcher";
+import { ProviderSwitcher } from "@/shared/provider/ProviderSwitcher";
+import { ThemeToggle } from "@/shared/theme/ThemeToggle";
 
 // Order follows the application workflow: CV first, then fit, draft, track, stats.
 const links = [

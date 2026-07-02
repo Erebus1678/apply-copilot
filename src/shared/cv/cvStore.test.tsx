@@ -8,7 +8,7 @@ jest.mock("idb-keyval", () => ({
 }));
 
 let activeProfile = "";
-jest.mock("@/features/profile/useProfileStore", () => ({
+jest.mock("@/shared/profile/useProfileStore", () => ({
   useActiveProfile: () => activeProfile,
 }));
 

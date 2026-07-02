@@ -125,3 +125,14 @@ export function overrideFor(
   const entry = config[provider];
   return { provider, apiKey: entry?.apiKey, model: entry?.model };
 }
+
+/**
+ * The per-request provider override for the active provider, memoized. One hook
+ * for every tool that submits to an AI route — replaces the repeated
+ * useProvider() + useProviderConfig() + overrideFor(...) dance.
+ */
+export function useProviderOverride(): { provider: ProviderId; apiKey?: string; model?: string } {
+  const provider = useProvider();
+  const config = useProviderConfig();
+  return useMemo(() => overrideFor(provider, config), [provider, config]);
+}

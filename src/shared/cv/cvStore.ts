@@ -1,6 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { del, get, set } from "idb-keyval";
-import { useActiveProfile } from "@/features/profile/useProfileStore";
+import { useActiveProfile } from "@/shared/profile/useProfileStore";
 import type { LayoutReport } from "@/lib/cv/layout";
 
 // The app-level CV, shared across CV-check / Analyze / Cover-letter. It is either

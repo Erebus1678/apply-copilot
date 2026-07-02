@@ -4,17 +4,16 @@ import { useState } from "react";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
 import { analysisSchema } from "@/lib/ai/analysis";
-import { CvInput } from "@/features/cv/CvInput";
-import { JdInput } from "@/features/jd/JdInput";
-import { useCurrentCv } from "@/features/cv/cvStore";
-import { overrideFor, useProvider, useProviderConfig } from "@/features/provider/useProviderStore";
+import { CvInput } from "@/shared/cv/CvInput";
+import { JdInput } from "@/shared/jd/JdInput";
+import { useCurrentCv } from "@/shared/cv/cvStore";
+import { useProviderOverride } from "@/shared/provider/useProviderStore";
 import { AnalysisResult } from "./AnalysisResult";
 
 export function AnalyzeView() {
   const [jd, setJd] = useState("");
   const { cv } = useCurrentCv();
-  const provider = useProvider();
-  const providerConfig = useProviderConfig();
+  const providerOverride = useProviderOverride();
   const { object, submit, stop, isLoading, error } = useObject({
     api: "/api/analyze",
     schema: analysisSchema,
@@ -24,7 +23,7 @@ export function AnalyzeView() {
     event.preventDefault();
     if (jd.trim().length < 20) return;
     const cvText = cv?.text.trim();
-    submit({ jd: jd.trim(), cv: cvText || undefined, ...overrideFor(provider, providerConfig) });
+    submit({ jd: jd.trim(), cv: cvText || undefined, ...providerOverride });
   }
 
   const canSubmit = jd.trim().length >= 20 && !isLoading;

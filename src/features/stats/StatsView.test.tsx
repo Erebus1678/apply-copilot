@@ -10,7 +10,7 @@ jest.mock("next/link", () => ({
 }));
 
 import { fetchApplications } from "@/lib/applications/client";
-import { setActiveProfile } from "@/features/profile/useProfileStore";
+import { setActiveProfile } from "@/shared/profile/useProfileStore";
 import { StatsView } from "./StatsView";
 
 const mockFetch = fetchApplications as jest.Mock;

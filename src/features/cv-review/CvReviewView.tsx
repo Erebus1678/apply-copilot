@@ -4,17 +4,16 @@ import { useState } from "react";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
 import { cvReviewSchema } from "@/lib/ai/cv-review";
-import { CvInput } from "@/features/cv/CvInput";
-import { useCurrentCv } from "@/features/cv/cvStore";
-import { overrideFor, useProvider, useProviderConfig } from "@/features/provider/useProviderStore";
+import { CvInput } from "@/shared/cv/CvInput";
+import { useCurrentCv } from "@/shared/cv/cvStore";
+import { useProviderOverride } from "@/shared/provider/useProviderStore";
 import { CvReviewResult } from "./CvReviewResult";
 
 export function CvReviewView() {
   const [notice, setNotice] = useState("");
   const [thorough, setThorough] = useState(false);
   const { cv } = useCurrentCv();
-  const provider = useProvider();
-  const providerConfig = useProviderConfig();
+  const providerOverride = useProviderOverride();
   const { object, submit, stop, isLoading, error } = useObject({
     api: "/api/cv-review",
     schema: cvReviewSchema,
@@ -32,7 +31,7 @@ export function CvReviewView() {
       cv: text,
       layout: cv?.layout ?? null,
       thorough,
-      ...overrideFor(provider, providerConfig),
+      ...providerOverride,
     });
   }
 

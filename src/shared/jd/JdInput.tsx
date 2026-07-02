@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CompressionHint } from "@/components/compression-hint";
 import { cn } from "@/lib/utils";
 import { extractJdFile, extractJdImage, extractJdUrl, isImageFile } from "@/lib/jd/client";
-import { overrideFor, useProvider, useProviderConfig } from "@/features/provider/useProviderStore";
+import { useProviderOverride } from "@/shared/provider/useProviderStore";
 
 const ACCEPT = ".pdf,.docx,.txt,.md,image/*";
 
@@ -27,8 +27,7 @@ type Props = {
  * per-application and transient.
  */
 export function JdInput({ id, value, onChange, placeholder, disabled, textareaClassName }: Props) {
-  const provider = useProvider();
-  const providerConfig = useProviderConfig();
+  const providerOverride = useProviderOverride();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState<Busy>("");
   const [dragging, setDragging] = useState(false);
@@ -55,7 +54,7 @@ export function JdInput({ id, value, onChange, placeholder, disabled, textareaCl
   function handleFile(file: File | undefined) {
     if (!file) return;
     if (isImageFile(file)) {
-      void run("image", () => extractJdImage(file, overrideFor(provider, providerConfig)));
+      void run("image", () => extractJdImage(file, providerOverride));
     } else {
       void run("file", () => extractJdFile(file));
     }
