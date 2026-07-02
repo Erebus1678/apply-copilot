@@ -16,8 +16,10 @@ function isPrivateIpv4(host: string): boolean {
 
 /**
  * Validate a user-supplied URL is a public http(s) address, or throw.
- * ponytail: blocks loopback/private hosts + IPv4 literals; no DNS resolution or
- * post-redirect re-check — adequate for a single-user local tool, harden for SaaS.
+ * Blocks loopback/private hosts + IPv4 literals. The caller re-runs this on every
+ * redirect hop (see guardedFetch). ponytail: no DNS resolution, so a public name
+ * that resolves to a private IP (DNS rebinding) isn't caught — add a resolve+check
+ * step when this moves to multi-tenant SaaS.
  */
 export function assertPublicUrl(raw: string): URL {
   let url: URL;

@@ -2,6 +2,7 @@ import { streamText } from "ai";
 import { getModel } from "@/lib/ai/provider";
 import { maybeCompressViaProxy } from "@/lib/ai/compress-proxy";
 import { streamRequestSchema } from "@/lib/ai/schemas";
+import { aiErrorResponse } from "@/lib/ai/errors";
 import { enforceAiRateLimit } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
@@ -39,7 +40,6 @@ export async function POST(req: Request) {
     // to tell "empty" apart from "failed".
     return result.toTextStreamResponse();
   } catch (error) {
-    const message = error instanceof Error ? error.message : "AI request failed";
-    return Response.json({ error: message }, { status: 500 });
+    return aiErrorResponse(error, "stream");
   }
 }

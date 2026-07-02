@@ -3,6 +3,7 @@ import { getModel } from "@/lib/ai/provider";
 import { analysisSchema, analyzeRequestSchema, buildAnalysisPrompt } from "@/lib/ai/analysis";
 import { maybeCompressViaProxy } from "@/lib/ai/compress-proxy";
 import { toFenceStrippedTextResponse } from "@/lib/ai/json-stream";
+import { aiErrorResponse } from "@/lib/ai/errors";
 import { enforceAiRateLimit } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
@@ -37,7 +38,6 @@ export async function POST(req: Request) {
     });
     return toFenceStrippedTextResponse(result.textStream);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Analysis failed";
-    return Response.json({ error: message }, { status: 500 });
+    return aiErrorResponse(error, "analyze");
   }
 }
