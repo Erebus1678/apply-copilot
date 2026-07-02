@@ -8,12 +8,26 @@ tech stack, seniority, and role archetype; scores the fit against your CV with a
 concrete gap list; drafts a tailored cover letter; and tracks every application
 on a persistent pipeline board.
 
+<p align="center">
+  <img src="docs/screenshots/analyze-demo.gif" alt="Paste a job description, get a CV-fit score with concrete gaps — streamed live" width="820" />
+</p>
+
 **Private by default.** The AI layer is provider-agnostic — the same code runs
 against a local model (LM Studio, Ollama) or any cloud provider (OpenAI,
 Anthropic, OpenRouter, Groq, Together). Switch in the header, bring your own key
 and model per device, and see each provider's health at a glance. Nothing has to
 leave your machine — and built-in prompt compression trims input tokens on every
 request.
+
+## Screenshots
+
+|                                  Analyze a JD against your CV                                  |                                        ATS-style CV review                                        |
+| :--------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------: |
+| ![Analyze — tech stack, seniority, and a CV-fit score with gaps](docs/screenshots/analyze.png) |           ![CV review — ATS score with concrete fixes](docs/screenshots/cv-review.png)            |
+|                                   **Tailored cover letter**                                    |                                  **Application pipeline board**                                   |
+|        ![Cover letter — a streamed, editable draft](docs/screenshots/cover-letter.png)         | ![Board — applications across saved/applied/interview/offer/rejected](docs/screenshots/board.png) |
+
+> Screenshots use synthetic data and a mocked model — regenerate anytime with `pnpm capture`.
 
 ## Stack
 
@@ -109,6 +123,7 @@ Every knob is an environment variable with a sensible default — the app runs w
 | `pnpm format` / `pnpm format:check`       | Prettier write / check             |
 | `pnpm test` / `pnpm test:coverage`        | Jest + RTL                         |
 | `pnpm e2e`                                | Playwright end-to-end              |
+| `pnpm capture`                            | Regenerate README screenshots/GIF  |
 | `pnpm storybook` / `pnpm build-storybook` | Component workshop                 |
 
 ## Self-hosting & LAN sharing
@@ -188,11 +203,6 @@ Rough direction, not a promise — issues and 👍 reactions steer priority:
 
 Issues and PRs welcome — see **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup and
 the checks CI runs, and **[CHANGELOG.md](CHANGELOG.md)** for what's shipped.
-
-## Screenshots
-
-> _TODO: add a short demo GIF and a couple of screenshots (board, analyze) under
-> `docs/`._ Capture locally with `pnpm dev`, then drop them here.
 
 ## License
 

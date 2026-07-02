@@ -43,6 +43,9 @@ yarn-error.log*
 /blob-report/
 /playwright/.cache/
 
+# showcase capture intermediates (the PNGs/GIF in docs/screenshots ARE committed)
+/scripts/capture/.artifacts/
+
 # internal loop tooling (not part of the app)
 /.looper
 /.looper-oss
