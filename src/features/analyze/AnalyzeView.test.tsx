@@ -13,7 +13,7 @@ jest.mock("@ai-sdk/react", () => ({ experimental_useObject: () => mockState }));
 
 type TextCv = { kind: "text"; text: string; layout: null; file: null };
 let mockCv: TextCv | null = null;
-jest.mock("@/features/cv/cvStore", () => ({
+jest.mock("@/shared/cv/cvStore", () => ({
   useCurrentCv: () => ({
     cv: mockCv,
     setText: jest.fn(),

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { APPLICATION_STATUSES, STATUS_LABELS } from "@/lib/applications/status";
-import { useActiveProfile } from "@/features/profile/useProfileStore";
+import { useActiveProfile } from "@/shared/profile/useProfileStore";
 import { ApplicationCard } from "./ApplicationCard";
 import { useBoardData } from "./useBoardData";
 import { useBoardDragDrop } from "./useBoardDragDrop";

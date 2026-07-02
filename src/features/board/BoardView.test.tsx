@@ -11,7 +11,7 @@ jest.mock("@/lib/applications/client", () => ({
 
 import { BoardView } from "./BoardView";
 import * as client from "@/lib/applications/client";
-import { setActiveProfile } from "@/features/profile/useProfileStore";
+import { setActiveProfile } from "@/shared/profile/useProfileStore";
 
 const mocked = client as jest.Mocked<typeof client>;
 
