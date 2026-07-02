@@ -105,6 +105,18 @@ function coerceRow(raw: Record<string, unknown>): unknown {
 }
 
 /**
+ * Condense skipped-row errors into one human line: the first `max` messages,
+ * then a "+N more" tail. Returns "" when there are none. Keeps the UI honest
+ * about which rows failed instead of showing only the first (or just a count).
+ */
+export function summarizeSkipped(errors: string[], max = 3): string {
+  if (errors.length === 0) return "";
+  const shown = errors.slice(0, max).join("; ");
+  const extra = errors.length - max;
+  return extra > 0 ? `${shown} (+${extra} more)` : shown;
+}
+
+/**
  * Parse a CSV or JSON export into validated application rows. Detection is by
  * extension first, then by content shape. Invalid rows are skipped and reported
  * (one message each) rather than failing the whole import.

@@ -12,7 +12,7 @@ import {
   importApplications,
   patchApplication,
 } from "@/lib/applications/client";
-import { parseImportFile } from "@/lib/applications/import";
+import { parseImportFile, summarizeSkipped } from "@/lib/applications/import";
 import {
   APPLICATION_STATUSES,
   STATUS_LABELS,
@@ -87,14 +87,18 @@ export function BoardView() {
     try {
       const { rows, errors } = parseImportFile(await file.text(), file.name);
       if (rows.length === 0) {
-        setError(errors[0] ?? "No valid applications found in that file");
+        const detail = summarizeSkipped(errors);
+        setError(
+          detail ? `No valid applications: ${detail}` : "No valid applications in that file",
+        );
         return;
       }
       const created = await importApplications(rows, profileIdRef.current || undefined);
       setApps((prev) => [...created, ...prev]);
-      setImportMsg(
-        `Imported ${created.length}${errors.length ? `, skipped ${errors.length}` : ""}.`,
-      );
+      const skipped = errors.length
+        ? `, skipped ${errors.length} (${summarizeSkipped(errors)})`
+        : "";
+      setImportMsg(`Imported ${created.length}${skipped}.`);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Import failed");
     }

@@ -40,4 +40,20 @@ describe("stripFencesStream", () => {
     );
     expect(out).toBe('{"x":true}');
   });
+
+  it("fails with a clean provider-agnostic message when the upstream errors mid-stream", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    // Emit a partial object, then reject — mimics a provider dying mid-response.
+    const upstream = new ReadableStream<string>({
+      start(controller) {
+        controller.enqueue('{"techStack":[');
+        controller.error(new Error("Anthropic API key invalid — secret leak risk"));
+      },
+    });
+
+    await expect(readAll(stripFencesStream(upstream))).rejects.toThrow(/failed partway through/);
+    // The raw provider error is logged server-side, never surfaced to the client.
+    expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
 });
