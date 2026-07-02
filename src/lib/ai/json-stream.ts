@@ -61,10 +61,22 @@ export function stripFencesStream(textStream: ReadableStream<string>): ReadableS
         // it as `error`, so the client shows "…failed partway…" instead of a silent
         // stop or a leaked provider message. We deliberately don't inline a JSON
         // sentinel: it would corrupt the partial-object parser mid-parse.
-        console.error("[ai:stream]", err);
-        controller.error(
-          new Error("The AI response failed partway through. Try again, or switch model/provider."),
-        );
+        //
+        // A "Controller is already closed" TypeError just means the consumer tore
+        // the stream down first (client disconnect / body-timeout abort) — that's
+        // teardown noise, not a provider failure, so don't log it as one.
+        const teardown =
+          err instanceof TypeError && err.message.includes("Controller is already closed");
+        if (!teardown) console.error("[ai:stream]", err);
+        try {
+          controller.error(
+            new Error(
+              "The AI response failed partway through. Try again, or switch model/provider.",
+            ),
+          );
+        } catch {
+          // Controller was already closed — nothing left to surface.
+        }
       }
     },
     cancel() {
