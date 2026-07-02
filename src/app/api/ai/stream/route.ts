@@ -2,7 +2,7 @@ import { streamText } from "ai";
 import { getModel } from "@/lib/ai/provider";
 import { maybeCompressViaProxy } from "@/lib/ai/compress-proxy";
 import { streamRequestSchema } from "@/lib/ai/schemas";
-import { aiErrorResponse } from "@/lib/ai/errors";
+import { aiErrorResponse, logAiError } from "@/lib/ai/errors";
 import { enforceAiRateLimit } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
@@ -33,6 +33,7 @@ export async function POST(req: Request) {
       model: getModel({ provider, apiKey, model }),
       system,
       prompt: finalPrompt,
+      onError: ({ error }) => logAiError(error, "stream"),
     });
     // A mid-stream provider error surfaces here as an empty stream rather than an
     // error event. Acceptable for this raw text endpoint; switch to

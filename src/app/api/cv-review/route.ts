@@ -5,7 +5,7 @@ import { buildCvExtractPrompt } from "@/lib/ai/cv-extract";
 import { cleanAiText } from "@/lib/ai/clean-text";
 import { maybeCompressViaProxy } from "@/lib/ai/compress-proxy";
 import { toFenceStrippedTextResponse } from "@/lib/ai/json-stream";
-import { aiErrorResponse } from "@/lib/ai/errors";
+import { aiErrorResponse, logAiError } from "@/lib/ai/errors";
 import { enforceAiRateLimit } from "@/lib/http/rate-limit";
 
 export const runtime = "nodejs";
@@ -52,6 +52,7 @@ export async function POST(req: Request) {
       output: Output.object({ schema: cvReviewSchema }),
       system,
       prompt: finalPrompt,
+      onError: ({ error }) => logAiError(error, "cv-review"),
     });
     return toFenceStrippedTextResponse(result.textStream);
   } catch (error) {
