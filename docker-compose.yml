@@ -16,6 +16,9 @@
 # README → "Self-hosting & LAN sharing".
 services:
   app:
+    # Build from source (default). To skip the build and pull the prebuilt image
+    # published by .github/workflows/publish.yml, comment out `build: .` and use:
+    #   image: ghcr.io/<owner>/apply-copilot:latest
     build: .
     restart: unless-stopped
     ports:
@@ -24,7 +27,8 @@ services:
       - "${PORT:-3000}:3000"
     healthcheck:
       # /api/providers needs no DB, so a 200 means the server is actually serving.
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/providers"]
+      test:
+        ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/providers"]
       interval: 30s
       timeout: 5s
       retries: 3

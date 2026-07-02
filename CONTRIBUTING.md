@@ -29,6 +29,16 @@ pnpm build            # production build
 For UI-affecting changes, also sanity-check `pnpm e2e` (Playwright) and the
 component workshop (`pnpm storybook`).
 
+## Sign your commits (DCO)
+
+Contributions are accepted under the [Developer Certificate of Origin](https://developercertificate.org/):
+by signing off you certify you wrote the change (or have the right to submit it)
+under the project's MIT license. Add a sign-off line to each commit with `-s`:
+
+```bash
+git commit -s -m "fix: ..."   # appends "Signed-off-by: Your Name <you@example.com>"
+```
+
 ## Conventions
 
 - **Commits** follow [Conventional Commits](https://www.conventionalcommits.org/):

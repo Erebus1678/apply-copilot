@@ -1,7 +1,8 @@
 # Apply Copilot
 
-![CI](https://img.shields.io/badge/CI-typecheck%20·%20lint%20·%20tests%20·%20build-2563eb)
-![Core Web Vitals](https://img.shields.io/badge/Core%20Web%20Vitals-Lighthouse%20CI-22c55e)
+<!-- Live CI badge: replace OWNER with your GitHub user/org once the repo is pushed. -->
+
+[![CI](https://github.com/OWNER/apply-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/apply-copilot/actions/workflows/ci.yml)
 ![Coverage](https://img.shields.io/badge/coverage-%E2%89%A580%25-22c55e)
 
 An AI copilot for job applications. Paste a job description and it extracts the
@@ -68,6 +69,23 @@ the id must match exactly what the server reports (e.g. `qwen/qwen3-coder-30b`).
 Every provider except Anthropic is OpenAI-compatible — add another by appending a
 row to `src/lib/ai/providers.ts`. For LM Studio / Ollama, the model id must match
 what the server reports (e.g. LM Studio needs the org prefix `qwen/...`).
+
+## Configuration
+
+Every knob is an environment variable with a sensible default — the app runs with
+**none** set. Provider keys/models are in the table above; the rest:
+
+| Variable               | Default            | What it does                                                         |
+| ---------------------- | ------------------ | -------------------------------------------------------------------- |
+| `DATABASE_URL`         | _(unset → PGlite)_ | Set to a Postgres URL to use a shared server DB instead of embedded  |
+| `DIRECT_URL`           | _(unset)_          | Direct Postgres connection used to run migrations (pooled setups)    |
+| `PGLITE_PATH`          | `./data/pgdata`    | Embedded DB dir. Use an **absolute** path under systemd/services     |
+| `AI_RATE_LIMIT`        | `20`               | Max AI requests per window, per IP                                   |
+| `AI_RATE_WINDOW_MS`    | `60000`            | Rate-limit window in ms                                              |
+| `CV_MAX_BYTES`         | `5242880` (5 MB)   | Upload ceiling for CV files (raise for high-res scans)               |
+| `COMPRESS_PROXY_URL`   | _(unset → off)_    | Route prompt text through an external compress proxy (opt-in egress) |
+| `COMPRESS_PROXY_TOKEN` | _(unset)_          | Bearer token for the compress proxy                                  |
+| `PORT`                 | `3000`             | Host port published by `docker compose` (container stays on 3000)    |
 
 ## Token savers
 
@@ -142,7 +160,10 @@ Generate/apply the schema with `pnpm db:generate` / `pnpm db:migrate`.
 - **Accessibility** — components are checked with `jest-axe`; Lighthouse CI gates the a11y score at ≥ 0.9.
 - **Core Web Vitals** — Lighthouse CI runs on every push (`lighthouserc.json`) and watches LCP ≤ 2.5s, CLS ≤ 0.1, TBT ≤ 200ms, FCP ≤ 1.5s.
 - **Coverage** — Jest enforces ≥ 80% statements/lines on application logic (integration boundaries are covered by Playwright + live checks).
-- **Rate limiting** — the AI endpoints are IP-rate-limited (in-memory, 20 req/min).
+- **Rate limiting** — the AI endpoints are IP-rate-limited (in-memory, 20 req/min by
+  default; tune with `AI_RATE_LIMIT` / `AI_RATE_WINDOW_MS`). The limit is **per
+  instance** (not shared across replicas), and the client IP is read from
+  `x-forwarded-for` — only trustworthy behind a reverse proxy you control.
 
 ## Editions (OSS vs SaaS)
 
@@ -152,6 +173,18 @@ required. A hosted SaaS edition is planned as a thin, env-gated layer on the
 never a fork. The seams already exist: the `DATABASE_URL` dual driver, the
 `profileId` tenancy column, and server-side per-provider keys. See
 **[EDITIONS.md](EDITIONS.md)** for the full decision record.
+
+## Roadmap
+
+Rough direction, not a promise — issues and 👍 reactions steer priority:
+
+- **Prebuilt image** — publish a GHCR image so self-host is `docker compose up`
+  with no local build (workflow already in `.github/workflows/publish.yml`).
+- **Save analysis to the board** — turn an Analyze fit score into a tracked
+  application in one click (today the board and analyze are separate).
+- **CV OCR fallback** — read scanned/image-only PDFs, not just text PDFs.
+- **More providers** — Mistral, Gemini, and other OpenAI-compatible endpoints.
+- **Hosted SaaS edition** — the env-gated layer described in [EDITIONS.md](EDITIONS.md).
 
 ## Contributing
 
