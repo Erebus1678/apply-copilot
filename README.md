@@ -3,6 +3,10 @@
 [![CI](https://github.com/Erebus1678/apply-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/Erebus1678/apply-copilot/actions/workflows/ci.yml)
 ![Coverage](https://img.shields.io/badge/coverage-%E2%89%A580%25-22c55e)
 
+**▶ [Live demo](https://apply-copilot-one.vercel.app) — no API key needed.** Paste a job
+description and watch the CV-fit analysis stream through the real pipeline. Bring your own
+key/model (any provider) to run it on your own data.
+
 An AI copilot for job applications. Paste a job description and it extracts the
 tech stack, seniority, and role archetype; scores the fit against your CV with a
 concrete gap list; drafts a tailored cover letter; and tracks every application
