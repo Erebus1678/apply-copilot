@@ -8,6 +8,14 @@ import { enforceAiRateLimit } from "@/lib/http/rate-limit";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+// Soft ceiling so short/custom modes don't overrun; standard stays uncapped
+// since the deterministic clamp only applies to custom mode client-side.
+function maxOutputTokensFor(data: { length?: string; maxChars?: number }): number | undefined {
+  if (data.length === "short") return 250;
+  if (data.length === "custom") return Math.ceil((data.maxChars ?? 1200) / 3);
+  return undefined;
+}
+
 /** Stream a tailored, anti-slop cover letter as plain text. */
 export async function POST(req: Request) {
   const limited = enforceAiRateLimit(req);
@@ -33,6 +41,7 @@ export async function POST(req: Request) {
       model: getModel(parsed.data),
       system,
       prompt: finalPrompt,
+      maxOutputTokens: maxOutputTokensFor(parsed.data),
       onError: ({ error }) => logAiError(error, "cover-letter"),
     });
     return result.toTextStreamResponse();

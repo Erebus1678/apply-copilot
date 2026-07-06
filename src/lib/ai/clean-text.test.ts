@@ -29,4 +29,35 @@ describe("cleanAiText", () => {
     const clean = "Dear hiring team,\n\nI build streaming UIs.\n\nBest,\nDmytro";
     expect(cleanAiText(clean)).toBe(clean);
   });
+
+  it("normalizes em-dashes and en-dashes to commas or hyphens", () => {
+    expect(cleanAiText("I led the project — end to end.")).toBe("I led the project, end to end.");
+    expect(cleanAiText("I led the project – end to end.")).toBe("I led the project, end to end.");
+    expect(cleanAiText("a well—known result")).toBe("a well - known result");
+  });
+
+  it("normalizes curly quotes and ellipsis to ASCII", () => {
+    expect(cleanAiText("She said “hello” and it's a ‘test’.")).toBe(
+      "She said \"hello\" and it's a 'test'.",
+    );
+    expect(cleanAiText("Wait for it…")).toBe("Wait for it...");
+  });
+
+  it("catches em-dashes with one-sided spacing", () => {
+    const a = cleanAiText("I led it —end to end.");
+    const b = cleanAiText("I led it— end to end.");
+    expect(a).not.toMatch(/[—–]/);
+    expect(b).not.toMatch(/[—–]/);
+    expect(a).toBe("I led it, end to end.");
+    expect(b).toBe("I led it, end to end.");
+  });
+
+  it("does not leave a double comma when a comma precedes the dash", () => {
+    expect(cleanAiText("X, — Y")).toBe("X, Y");
+  });
+
+  it("leaves a real hyphen unchanged", () => {
+    const clean = "This is a well-known, state-of-the-art approach.";
+    expect(cleanAiText(clean)).toBe(clean);
+  });
 });

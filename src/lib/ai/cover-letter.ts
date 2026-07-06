@@ -13,6 +13,18 @@ export const COVER_LETTER_TONES = [
 
 export type CoverLetterTone = (typeof COVER_LETTER_TONES)[number];
 
+export const COVER_LETTER_LENGTHS = ["standard", "short", "custom"] as const;
+
+export type CoverLetterLength = (typeof COVER_LETTER_LENGTHS)[number];
+
+export const COVER_LETTER_LENGTH_LABELS: Record<CoverLetterLength, string> = {
+  standard: "Standard",
+  short: "Short (½ page)",
+  custom: "Custom",
+};
+
+const DEFAULT_CUSTOM_MAX_CHARS = 1200;
+
 export const COVER_LETTER_TONE_LABELS: Record<CoverLetterTone, string> = {
   professional: "Professional",
   warm: "Warm",
@@ -37,6 +49,8 @@ export const coverLetterRequestSchema = z.object({
   jd: z.string().min(20, "Paste a fuller job description").max(20_000),
   cv: z.string().min(20, "Add your CV to ground the letter").max(20_000),
   tone: z.enum(COVER_LETTER_TONES).optional(),
+  length: z.enum(COVER_LETTER_LENGTHS).optional(),
+  maxChars: z.number().int().min(200).max(4000).optional(),
   ...providerOverrideFields,
 });
 
@@ -50,11 +64,23 @@ Hard rules:
 - Ground every claim in the CV. Never invent experience, titles, or metrics.
 - Tie the candidate's concrete experience to specific requirements named in the job description.
 - Plain, direct, first person. Active voice. Short paragraphs.
-- 220-320 words, 3-4 paragraphs, then a simple sign-off.
+- Use plain ASCII punctuation only. Never use em-dashes or en-dashes (— –) — use a comma, period, or hyphen instead. No curly/smart quotes. No ellipsis character (…) — write three periods if needed.
 
 Banned (do not use): "I am excited/thrilled/delighted", "passionate", "proven track record", "results-driven", "team player", "fast-paced environment", "think outside the box", "leverage", "synergy", "dynamic", "I believe I would be a great fit", "perfect candidate". No rule-of-three lists. No "Furthermore/Moreover/In today's world" filler. Do not flatter the company with generic praise.
 
 Output ONLY the letter (greeting, body paragraphs, sign-off). No preamble, no notes, no markdown headers.`;
+
+function lengthDirective(input: CoverLetterRequest): string {
+  const length = input.length ?? "standard";
+  if (length === "short") {
+    return "Keep it to about half an A4 page: roughly 150 words in 2 tight paragraphs plus a one-line sign-off. Cut anything non-essential.";
+  }
+  if (length === "custom") {
+    const maxChars = input.maxChars ?? DEFAULT_CUSTOM_MAX_CHARS;
+    return `Keep the ENTIRE letter under ${maxChars} characters. Be concise; prioritize the strongest, most relevant points. Do not exceed this limit.`;
+  }
+  return "220-320 words, 3-4 paragraphs, then a simple sign-off.";
+}
 
 export function buildCoverLetterPrompt(input: CoverLetterRequest): {
   system: string;
@@ -63,6 +89,24 @@ export function buildCoverLetterPrompt(input: CoverLetterRequest): {
   const tone = input.tone ?? "professional";
   return {
     system: `${SYSTEM_PROMPT}\n\n${currentDateContext()}`,
-    prompt: `Write a tailored cover letter for this role, grounded strictly in the CV below.\n\nTone: ${TONE_GUIDANCE[tone]}\n\n--- JOB DESCRIPTION ---\n${compressPromptText(input.jd)}\n\n--- CANDIDATE CV ---\n${compressPromptText(input.cv)}\n\nWrite the letter now. Output only the letter. Do not use any banned word or phrase — in particular, never write "leverage", "passionate", "excited", "proven track record", or "team player".`,
+    prompt: `Write a tailored cover letter for this role, grounded strictly in the CV below.\n\nTone: ${TONE_GUIDANCE[tone]}\n\nLength: ${lengthDirective(input)}\n\n--- JOB DESCRIPTION ---\n${compressPromptText(input.jd)}\n\n--- CANDIDATE CV ---\n${compressPromptText(input.cv)}\n\nWrite the letter now. Output only the letter. Do not use any banned word or phrase — in particular, never write "leverage", "passionate", "excited", "proven track record", or "team player".`,
   };
+}
+
+// Hard guarantee for custom mode: the model's length compliance is
+// best-effort, this trims deterministically so the shown draft never
+// exceeds the requested character budget.
+export function clampToMaxChars(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const truncated = text.slice(0, max);
+  const lastBoundary = Math.max(
+    truncated.lastIndexOf(". "),
+    truncated.lastIndexOf("! "),
+    truncated.lastIndexOf("? "),
+    truncated.lastIndexOf(".\n"),
+    truncated.lastIndexOf("!\n"),
+    truncated.lastIndexOf("?\n"),
+  );
+  if (lastBoundary > -1) return truncated.slice(0, lastBoundary + 1).trim();
+  return truncated.replace(/\s+\S*$/, "").trim();
 }
