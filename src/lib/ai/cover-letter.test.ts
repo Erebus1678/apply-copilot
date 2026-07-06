@@ -49,6 +49,21 @@ describe("buildCoverLetterPrompt", () => {
     const { prompt } = buildCoverLetterPrompt({ jd, cv, length: "custom" });
     expect(prompt).toContain("under 1200 characters");
   });
+
+  it("uses the match-JD language directive by default", () => {
+    const { prompt } = buildCoverLetterPrompt({ jd, cv });
+    expect(prompt).toContain("SAME language as the job description");
+  });
+
+  it("uses the match-JD language directive when language is 'auto'", () => {
+    const { prompt } = buildCoverLetterPrompt({ jd, cv, language: "auto" });
+    expect(prompt).toContain("SAME language as the job description");
+  });
+
+  it("uses the explicit-language directive when language is set", () => {
+    const { prompt } = buildCoverLetterPrompt({ jd, cv, language: "Ukrainian" });
+    expect(prompt).toContain("Write the ENTIRE cover letter in Ukrainian.");
+  });
 });
 
 describe("clampToMaxChars", () => {

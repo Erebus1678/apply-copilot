@@ -51,6 +51,7 @@ export const coverLetterRequestSchema = z.object({
   tone: z.enum(COVER_LETTER_TONES).optional(),
   length: z.enum(COVER_LETTER_LENGTHS).optional(),
   maxChars: z.number().int().min(200).max(4000).optional(),
+  language: z.string().max(40).optional(),
   ...providerOverrideFields,
 });
 
@@ -69,6 +70,14 @@ Hard rules:
 Banned (do not use): "I am excited/thrilled/delighted", "passionate", "proven track record", "results-driven", "team player", "fast-paced environment", "think outside the box", "leverage", "synergy", "dynamic", "I believe I would be a great fit", "perfect candidate". No rule-of-three lists. No "Furthermore/Moreover/In today's world" filler. Do not flatter the company with generic praise.
 
 Output ONLY the letter (greeting, body paragraphs, sign-off). No preamble, no notes, no markdown headers.`;
+
+function languageDirective(input: CoverLetterRequest): string {
+  const language = input.language?.trim();
+  if (language && language.toLowerCase() !== "auto") {
+    return `Write the ENTIRE cover letter in ${language}.`;
+  }
+  return "Write the cover letter in the SAME language as the job description (detect it from the JD text).";
+}
 
 function lengthDirective(input: CoverLetterRequest): string {
   const length = input.length ?? "standard";
@@ -89,7 +98,7 @@ export function buildCoverLetterPrompt(input: CoverLetterRequest): {
   const tone = input.tone ?? "professional";
   return {
     system: `${SYSTEM_PROMPT}\n\n${currentDateContext()}`,
-    prompt: `Write a tailored cover letter for this role, grounded strictly in the CV below.\n\nTone: ${TONE_GUIDANCE[tone]}\n\nLength: ${lengthDirective(input)}\n\n--- JOB DESCRIPTION ---\n${compressPromptText(input.jd)}\n\n--- CANDIDATE CV ---\n${compressPromptText(input.cv)}\n\nWrite the letter now. Output only the letter. Do not use any banned word or phrase — in particular, never write "leverage", "passionate", "excited", "proven track record", or "team player".`,
+    prompt: `Write a tailored cover letter for this role, grounded strictly in the CV below.\n\nTone: ${TONE_GUIDANCE[tone]}\n\nLength: ${lengthDirective(input)}\n\nLanguage: ${languageDirective(input)}\n\n--- JOB DESCRIPTION ---\n${compressPromptText(input.jd)}\n\n--- CANDIDATE CV ---\n${compressPromptText(input.cv)}\n\nWrite the letter now. Output only the letter. Do not use any banned word or phrase — in particular, never write "leverage", "passionate", "excited", "proven track record", or "team player".`,
   };
 }
 

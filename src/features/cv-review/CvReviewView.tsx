@@ -38,33 +38,35 @@ export function CvReviewView() {
   return (
     <div className="grid gap-8 lg:grid-cols-2">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="border-border bg-background/95 sticky top-16 z-10 -mx-1 flex flex-wrap items-center gap-4 border-b px-1 py-3 backdrop-blur">
+          <div className="flex gap-2">
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Checking…" : "Check my CV"}
+            </Button>
+            {isLoading && (
+              <Button type="button" variant="outline" onClick={() => stop()}>
+                Stop
+              </Button>
+            )}
+          </div>
+
+          <label className="text-muted-foreground flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={thorough}
+              onChange={(e) => setThorough(e.target.checked)}
+              disabled={isLoading}
+              className="border-input size-4 rounded"
+            />
+            Thorough — extract structure first, then review (slower, fewer slips)
+          </label>
+        </div>
+
         <CvInput
           id="cv-review-cv"
           placeholder="Paste your CV — or upload a PDF/DOCX below."
           disabled={isLoading}
         />
-
-        <label className="text-muted-foreground flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={thorough}
-            onChange={(e) => setThorough(e.target.checked)}
-            disabled={isLoading}
-            className="border-input size-4 rounded"
-          />
-          Thorough — extract structure first, then review (slower, fewer slips)
-        </label>
-
-        <div className="flex gap-2">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Checking…" : "Check my CV"}
-          </Button>
-          {isLoading && (
-            <Button type="button" variant="outline" onClick={() => stop()}>
-              Stop
-            </Button>
-          )}
-        </div>
 
         {notice && (
           <p className="text-destructive text-sm" role="alert">

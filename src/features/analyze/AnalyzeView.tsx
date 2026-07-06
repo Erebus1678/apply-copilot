@@ -52,6 +52,17 @@ export function AnalyzeView() {
   return (
     <div className="grid gap-8 lg:grid-cols-2">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="border-border bg-background/95 sticky top-16 z-10 -mx-1 flex flex-wrap gap-2 border-b px-1 py-3 backdrop-blur">
+          <Button type="submit" disabled={!canSubmit}>
+            {isLoading ? "Analyzing…" : "Analyze"}
+          </Button>
+          {isLoading && (
+            <Button type="button" variant="outline" onClick={() => stop()}>
+              Stop
+            </Button>
+          )}
+        </div>
+
         <JdInput
           id="jd"
           value={jd}
@@ -65,17 +76,6 @@ export function AnalyzeView() {
           placeholder="Paste your CV once — it powers the fit score and gaps."
           disabled={isLoading}
         />
-
-        <div className="flex gap-2">
-          <Button type="submit" disabled={!canSubmit}>
-            {isLoading ? "Analyzing…" : "Analyze"}
-          </Button>
-          {isLoading && (
-            <Button type="button" variant="outline" onClick={() => stop()}>
-              Stop
-            </Button>
-          )}
-        </div>
       </form>
 
       <div className="lg:border-border lg:border-l lg:pl-8">
