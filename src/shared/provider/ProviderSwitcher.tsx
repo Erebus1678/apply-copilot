@@ -198,22 +198,23 @@ export function ProviderSwitcher() {
           </ul>
 
           <div className="border-border mt-2 flex flex-col gap-2 border-t pt-2">
-            {activeSpec.needsKey && (
-              <label className="flex flex-col gap-1 text-xs">
-                <span className="text-muted-foreground">
-                  {activeSpec.label} API key (this device)
-                </span>
-                <input
-                  type="password"
-                  autoComplete="off"
-                  spellCheck={false}
-                  value={activeEntry?.apiKey ?? ""}
-                  onChange={(e) => setProviderKey(active, e.target.value)}
-                  placeholder={activeSpec.apiKeyEnv}
-                  className="border-border bg-background focus-visible:ring-ring rounded-md border px-2 py-1 font-mono text-xs outline-none focus-visible:ring-2"
-                />
-              </label>
-            )}
+            <label className="flex flex-col gap-1 text-xs">
+              <span className="text-muted-foreground">
+                {activeSpec.label} API key
+                {activeSpec.needsKey ? " (this device)" : " (optional, this device)"}
+              </span>
+              <input
+                type="password"
+                autoComplete="off"
+                spellCheck={false}
+                value={activeEntry?.apiKey ?? ""}
+                onChange={(e) => setProviderKey(active, e.target.value)}
+                placeholder={
+                  activeSpec.needsKey ? activeSpec.apiKeyEnv : "only if your server requires a key"
+                }
+                className="border-border bg-background focus-visible:ring-ring rounded-md border px-2 py-1 font-mono text-xs outline-none focus-visible:ring-2"
+              />
+            </label>
             <div className="flex flex-col gap-1 text-xs">
               <span className="text-muted-foreground flex items-center gap-2">
                 <label htmlFor="provider-model">Model</label>
