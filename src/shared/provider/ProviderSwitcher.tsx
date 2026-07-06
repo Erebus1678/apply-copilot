@@ -27,13 +27,16 @@ const SUGGESTED_MODELS: Partial<Record<ProviderId, string[]>> = {
 
 type DotState = "ready" | "down" | "unknown";
 
-function dotState(id: ProviderId, health: HealthMap, hasByoKey: boolean): DotState {
+function dotState(id: ProviderId, health: HealthMap, hasByoConfig: boolean): DotState {
   const spec = PROVIDERS[id];
   const h = health[id];
   if (spec.needsKey) {
-    if (hasByoKey || h?.hasEnvKey) return "ready";
+    if (hasByoConfig || h?.hasEnvKey) return "ready";
     return "down"; // no key anywhere → can't be used
   }
+  // Keyless provider (e.g. 9Router): the server-side health ping can't see the
+  // user's per-device BYO base URL / key, so trust a configured byo over the ping.
+  if (hasByoConfig) return "ready";
   if (!h) return "unknown";
   return h.live ? "ready" : "down";
 }
@@ -142,7 +145,7 @@ export function ProviderSwitcher() {
 
   const activeSpec = PROVIDERS[active];
   const activeEntry = config[active];
-  const activeDot = dotState(active, health, Boolean(activeEntry?.apiKey));
+  const activeDot = dotState(active, health, Boolean(activeEntry?.apiKey || activeEntry?.baseUrl));
 
   // Keep a previously-chosen model selectable even if the server isn't currently
   // serving it (e.g. not loaded yet), so switching providers never drops it.
@@ -176,7 +179,11 @@ export function ProviderSwitcher() {
             {PROVIDER_IDS.map((id) => {
               const spec = PROVIDERS[id];
               const isActive = id === active;
-              const state = dotState(id, health, Boolean(config[id]?.apiKey));
+              const state = dotState(
+                id,
+                health,
+                Boolean(config[id]?.apiKey || config[id]?.baseUrl),
+              );
               return (
                 <li key={id}>
                   <button

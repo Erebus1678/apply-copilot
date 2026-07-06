@@ -29,13 +29,17 @@ const nextConfig: NextConfig = {
   // Defense-in-depth headers for every response. No CSP here: the theme-boot
   // inline script in layout.tsx would need a per-request nonce, which is a SaaS
   // concern (see EDITIONS.md) — these three are safe for a same-origin local app.
+  // X-Frame-Options is SAMEORIGIN (not DENY): the app self-embeds its own CV PDF
+  // preview via an <object> blob (CvInput.tsx), and Chrome enforces XFO on
+  // embedded PDFs too, so DENY blanked that preview. Cross-origin framing is
+  // still blocked.
   async headers() {
     return [
       {
         source: "/:path*",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         ],
       },
