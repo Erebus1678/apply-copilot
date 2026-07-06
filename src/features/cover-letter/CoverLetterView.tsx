@@ -10,6 +10,10 @@ import {
   COVER_LETTER_TONES,
   COVER_LETTER_TONE_LABELS,
   type CoverLetterTone,
+  COVER_LETTER_LENGTHS,
+  COVER_LETTER_LENGTH_LABELS,
+  type CoverLetterLength,
+  clampToMaxChars,
 } from "@/lib/ai/cover-letter";
 import { CvInput } from "@/shared/cv/CvInput";
 import { JdInput } from "@/shared/jd/JdInput";
@@ -19,6 +23,8 @@ import { useProviderOverride } from "@/shared/provider/useProviderStore";
 export function CoverLetterView() {
   const [jd, setJd] = useState("");
   const [tone, setTone] = useState<CoverLetterTone>("professional");
+  const [length, setLength] = useState<CoverLetterLength>("standard");
+  const [maxChars, setMaxChars] = useState(1200);
   const [cvError, setCvError] = useState("");
   const [copied, setCopied] = useState(false);
   const { cv } = useCurrentCv();
@@ -27,8 +33,12 @@ export function CoverLetterView() {
   const { completion, complete, setCompletion, isLoading, stop, error } = useCompletion({
     api: "/api/cover-letter",
     streamProtocol: "text",
-    // Deterministic de-slop once the stream settles (preamble, fences, markdown).
-    onFinish: (_prompt, text) => setCompletion(cleanAiText(text)),
+    // Deterministic de-slop once the stream settles (preamble, fences, markdown);
+    // custom mode also gets a hard character-count clamp.
+    onFinish: (_prompt, text) => {
+      const cleaned = cleanAiText(text);
+      setCompletion(length === "custom" ? clampToMaxChars(cleaned, maxChars) : cleaned);
+    },
   });
 
   function handleSubmit(event: React.FormEvent) {
@@ -42,7 +52,14 @@ export function CoverLetterView() {
     setCvError("");
     setCopied(false);
     void complete("", {
-      body: { jd: jd.trim(), cv: cvText, tone, ...providerOverride },
+      body: {
+        jd: jd.trim(),
+        cv: cvText,
+        tone,
+        length,
+        ...(length === "custom" ? { maxChars } : {}),
+        ...providerOverride,
+      },
     });
   }
 
@@ -90,21 +107,55 @@ export function CoverLetterView() {
           )}
         </div>
 
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span className="font-medium">Tone</span>
-          <select
-            value={tone}
-            onChange={(e) => setTone(e.target.value as CoverLetterTone)}
-            disabled={isLoading}
-            className="border-input bg-background focus-visible:ring-ring h-10 rounded-md border px-3 text-sm outline-none focus-visible:ring-2 disabled:opacity-50 sm:w-56"
-          >
-            {COVER_LETTER_TONES.map((t) => (
-              <option key={t} value={t}>
-                {COVER_LETTER_TONE_LABELS[t]}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="flex flex-wrap gap-4">
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span className="font-medium">Tone</span>
+            <select
+              value={tone}
+              onChange={(e) => setTone(e.target.value as CoverLetterTone)}
+              disabled={isLoading}
+              className="border-input bg-background focus-visible:ring-ring h-10 rounded-md border px-3 text-sm outline-none focus-visible:ring-2 disabled:opacity-50 sm:w-56"
+            >
+              {COVER_LETTER_TONES.map((t) => (
+                <option key={t} value={t}>
+                  {COVER_LETTER_TONE_LABELS[t]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span className="font-medium">Length</span>
+            <select
+              value={length}
+              onChange={(e) => setLength(e.target.value as CoverLetterLength)}
+              disabled={isLoading}
+              className="border-input bg-background focus-visible:ring-ring h-10 rounded-md border px-3 text-sm outline-none focus-visible:ring-2 disabled:opacity-50 sm:w-56"
+            >
+              {COVER_LETTER_LENGTHS.map((l) => (
+                <option key={l} value={l}>
+                  {COVER_LETTER_LENGTH_LABELS[l]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {length === "custom" && (
+            <label className="flex flex-col gap-1.5 text-sm">
+              <span className="font-medium">Max characters</span>
+              <input
+                type="number"
+                min={200}
+                max={4000}
+                step={100}
+                value={maxChars}
+                onChange={(e) => setMaxChars(Number(e.target.value))}
+                disabled={isLoading}
+                className="border-input bg-background focus-visible:ring-ring h-10 rounded-md border px-3 text-sm outline-none focus-visible:ring-2 disabled:opacity-50 sm:w-40"
+              />
+            </label>
+          )}
+        </div>
 
         <div className="flex gap-2">
           <Button type="submit" disabled={!canSubmit}>
