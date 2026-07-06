@@ -1,6 +1,7 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import type { LanguageModel } from "ai";
+import { assertPublicUrl } from "@/lib/jd/url-guard";
 import { getAiConfig, type ProviderId } from "./config";
 import { PROVIDERS } from "./providers";
 
@@ -9,11 +10,12 @@ export interface ProviderInfo {
   model: string;
 }
 
-/** Per-request override: pick a provider, bring your own key, and/or a model. */
+/** Per-request override: pick a provider, bring your own key, model, and/or base URL. */
 export interface ModelOverride {
   provider?: ProviderId;
   apiKey?: string;
   model?: string;
+  baseUrl?: string;
 }
 
 function normalize(override?: ProviderId | ModelOverride): ModelOverride {
@@ -54,8 +56,17 @@ export function getModel(override?: ProviderId | ModelOverride): LanguageModel {
     throw new Error(`${spec.apiKeyEnv} is not configured`);
   }
 
+  // BYO base URL (per-device override, e.g. pointing at the user's own tunnel/router).
+  // A user-supplied URL is an SSRF surface: validate it's a public http(s) host unless
+  // the operator explicitly opts into self-hosted/localhost targets.
+  const overrideBaseUrl = o.baseUrl?.trim();
+  const baseUrl =
+    overrideBaseUrl && process.env.ALLOW_PRIVATE_BASE_URL !== "1"
+      ? assertPublicUrl(overrideBaseUrl).toString()
+      : (overrideBaseUrl ?? resolved.baseUrl);
+
   const openai = createOpenAI({
-    baseURL: resolved.baseUrl, // undefined → official OpenAI endpoint
+    baseURL: baseUrl, // undefined → official OpenAI endpoint
     apiKey: apiKey ?? "not-needed", // keyless local servers ignore this
   });
   return openai.chat(model);

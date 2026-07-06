@@ -48,15 +48,17 @@ function requestFor(
 export async function listProviderModels(opts: {
   provider: ProviderId;
   apiKey?: string;
+  baseUrl?: string;
 }): Promise<string[]> {
   const spec = PROVIDERS[opts.provider];
   const resolved = getAiConfig().providers[opts.provider];
   const key = opts.apiKey?.trim() || resolved.apiKey;
+  const baseUrl = opts.baseUrl?.trim() || resolved.baseUrl;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), MODELS_TIMEOUT_MS);
   try {
-    const { url, headers } = requestFor(spec, resolved.baseUrl, key);
+    const { url, headers } = requestFor(spec, baseUrl, key);
     const res = await fetch(url, { headers, signal: controller.signal });
     if (!res.ok) return [];
     return parseIds(await res.json());

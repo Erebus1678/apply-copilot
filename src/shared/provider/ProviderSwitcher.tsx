@@ -6,6 +6,7 @@ import { PROVIDERS } from "@/lib/ai/providers";
 import { cn } from "@/lib/utils";
 import {
   setProvider,
+  setProviderBaseUrl,
   setProviderKey,
   setProviderModel,
   useProvider,
@@ -96,7 +97,11 @@ export function ProviderSwitcher() {
         const res = await fetch("/api/providers/models", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ provider: active, apiKey: config[active]?.apiKey }),
+          body: JSON.stringify({
+            provider: active,
+            apiKey: config[active]?.apiKey,
+            baseUrl: config[active]?.baseUrl,
+          }),
           signal: controller.signal,
         });
         const body = (await res.json()) as { data?: string[] };
@@ -215,6 +220,20 @@ export function ProviderSwitcher() {
                 className="border-border bg-background focus-visible:ring-ring rounded-md border px-2 py-1 font-mono text-xs outline-none focus-visible:ring-2"
               />
             </label>
+            {activeSpec.kind !== "anthropic" && (
+              <label className="flex flex-col gap-1 text-xs">
+                <span className="text-muted-foreground">Base URL (optional, this device)</span>
+                <input
+                  type="text"
+                  autoComplete="off"
+                  spellCheck={false}
+                  value={activeEntry?.baseUrl ?? ""}
+                  onChange={(e) => setProviderBaseUrl(active, e.target.value)}
+                  placeholder={activeSpec.baseUrl ?? "https://…/v1"}
+                  className="border-border bg-background focus-visible:ring-ring rounded-md border px-2 py-1 font-mono text-xs outline-none focus-visible:ring-2"
+                />
+              </label>
+            )}
             <div className="flex flex-col gap-1 text-xs">
               <span className="text-muted-foreground flex items-center gap-2">
                 <label htmlFor="provider-model">Model</label>

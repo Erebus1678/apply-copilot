@@ -9,4 +9,5 @@ export const providerOverrideFields = {
   provider: z.enum(PROVIDER_IDS).optional(),
   apiKey: z.string().max(400).optional(),
   model: z.string().max(200).optional(),
+  baseUrl: z.string().max(300).optional(),
 };

@@ -104,6 +104,41 @@ describe("AI provider configuration", () => {
   it("reflects a per-request model override in the reported info", () => {
     expect(getActiveProviderInfo({ provider: "openai", model: "gpt-4o" }).model).toBe("gpt-4o");
   });
+
+  describe("BYO base URL (SSRF guard)", () => {
+    it("throws for a private/localhost override baseUrl when ALLOW_PRIVATE_BASE_URL is unset", () => {
+      delete process.env.ALLOW_PRIVATE_BASE_URL;
+      expect(() => getModel({ provider: "local", baseUrl: "http://localhost:9999/v1" })).toThrow(
+        /private address/,
+      );
+    });
+
+    it("throws for a link-local/metadata override baseUrl", () => {
+      delete process.env.ALLOW_PRIVATE_BASE_URL;
+      expect(() => getModel({ provider: "local", baseUrl: "http://169.254.169.254/v1" })).toThrow(
+        /private address/,
+      );
+    });
+
+    it("uses a valid public https override as the baseURL", () => {
+      expect(getModel({ provider: "local", baseUrl: "https://example.com/v1" })).toBeDefined();
+    });
+
+    it("allows a localhost override baseUrl when ALLOW_PRIVATE_BASE_URL=1", () => {
+      process.env.ALLOW_PRIVATE_BASE_URL = "1";
+      expect(() =>
+        getModel({ provider: "local", baseUrl: "http://localhost:9999/v1" }),
+      ).not.toThrow();
+      delete process.env.ALLOW_PRIVATE_BASE_URL;
+    });
+
+    it("ignores a baseUrl override for anthropic", () => {
+      process.env.ANTHROPIC_API_KEY = "sk-ant";
+      expect(() =>
+        getModel({ provider: "anthropic", baseUrl: "http://localhost:1/v1" }),
+      ).not.toThrow();
+    });
+  });
 });
 
 describe("streamRequestSchema", () => {

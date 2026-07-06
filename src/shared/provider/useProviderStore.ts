@@ -10,6 +10,7 @@ const listeners = new Set<() => void>();
 export interface ProviderEntry {
   apiKey?: string;
   model?: string;
+  baseUrl?: string;
 }
 export type ProviderConfig = Partial<Record<ProviderId, ProviderEntry>>;
 
@@ -82,8 +83,9 @@ function setEntry(id: ProviderId, patch: ProviderEntry): void {
   // Drop empty fields so the stored object stays tidy.
   if (!entry.apiKey) delete entry.apiKey;
   if (!entry.model) delete entry.model;
+  if (!entry.baseUrl) delete entry.baseUrl;
   const next: ProviderConfig = { ...cfg, [id]: entry };
-  if (!entry.apiKey && !entry.model) delete next[id];
+  if (!entry.apiKey && !entry.model && !entry.baseUrl) delete next[id];
   writeConfig(next);
 }
 
@@ -93,6 +95,10 @@ export function setProviderKey(id: ProviderId, apiKey: string): void {
 
 export function setProviderModel(id: ProviderId, model: string): void {
   setEntry(id, { model: model.trim() || undefined });
+}
+
+export function setProviderBaseUrl(id: ProviderId, baseUrl: string): void {
+  setEntry(id, { baseUrl: baseUrl.trim() || undefined });
 }
 
 // The snapshot is the raw JSON string (stable per content) so useSyncExternalStore
@@ -117,13 +123,13 @@ export function useProviderConfig(): ProviderConfig {
   }, [raw]);
 }
 
-/** Build the per-request override (provider + any BYO key/model) for a provider. */
+/** Build the per-request override (provider + any BYO key/model/baseUrl) for a provider. */
 export function overrideFor(
   provider: ProviderId,
   config: ProviderConfig,
-): { provider: ProviderId; apiKey?: string; model?: string } {
+): { provider: ProviderId; apiKey?: string; model?: string; baseUrl?: string } {
   const entry = config[provider];
-  return { provider, apiKey: entry?.apiKey, model: entry?.model };
+  return { provider, apiKey: entry?.apiKey, model: entry?.model, baseUrl: entry?.baseUrl };
 }
 
 /**
@@ -131,7 +137,12 @@ export function overrideFor(
  * for every tool that submits to an AI route — replaces the repeated
  * useProvider() + useProviderConfig() + overrideFor(...) dance.
  */
-export function useProviderOverride(): { provider: ProviderId; apiKey?: string; model?: string } {
+export function useProviderOverride(): {
+  provider: ProviderId;
+  apiKey?: string;
+  model?: string;
+  baseUrl?: string;
+} {
   const provider = useProvider();
   const config = useProviderConfig();
   return useMemo(() => overrideFor(provider, config), [provider, config]);
