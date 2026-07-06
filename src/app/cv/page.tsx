@@ -11,7 +11,7 @@ export default function CvPage() {
     <PageShell
       eyebrow="01 · CV check"
       title="Is your CV ATS-ready?"
-      intro="Get an ATS-friendliness score, the concrete things to fix (including spelling), and what your CV already does well — streamed, and grounded only in what you paste."
+      intro="Get an ATS-friendliness score, the concrete things to fix (including spelling), and what your CV already does well, streamed, and grounded only in what you paste."
       wide
     >
       <CvReviewView />

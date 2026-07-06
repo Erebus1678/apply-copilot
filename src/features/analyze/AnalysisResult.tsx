@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScoreRing } from "@/components/score-ring";
 import { StreamingIndicator } from "@/components/streaming-indicator";
 import type { Analysis } from "@/lib/ai/analysis";
+import { normalizeTypography } from "@/lib/ai/clean-text";
 
 const SEVERITY_VARIANT = {
   minor: "default",
@@ -46,7 +47,9 @@ export function AnalysisResult({ analysis, isLoading, error }: Props) {
             {analysis.seniority}
           </Badge>
         )}
-        {analysis?.archetype && <span className="text-sm font-medium">{analysis.archetype}</span>}
+        {analysis?.archetype && (
+          <span className="text-sm font-medium">{normalizeTypography(analysis.archetype)}</span>
+        )}
       </div>
 
       {tech.length > 0 && (
@@ -73,7 +76,7 @@ export function AnalysisResult({ analysis, isLoading, error }: Props) {
           </h3>
           <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm">
             {responsibilities.map((r, i) => (
-              <li key={i}>{r}</li>
+              <li key={i}>{r && normalizeTypography(r)}</li>
             ))}
           </ul>
         </section>
@@ -85,7 +88,9 @@ export function AnalysisResult({ analysis, isLoading, error }: Props) {
             {typeof fit.score === "number" && <ScoreRing score={fit.score} label="CV fit score" />}
             <div className="flex flex-col gap-1">
               <h3 className="text-sm font-semibold">CV fit</h3>
-              {fit.summary && <p className="text-muted-foreground text-sm">{fit.summary}</p>}
+              {fit.summary && (
+                <p className="text-muted-foreground text-sm">{normalizeTypography(fit.summary)}</p>
+              )}
             </div>
           </div>
 
@@ -115,7 +120,7 @@ export function AnalysisResult({ analysis, isLoading, error }: Props) {
                     <Badge variant={SEVERITY_VARIANT[g?.severity ?? "minor"]}>
                       {g?.severity ?? "minor"}
                     </Badge>
-                    <span>{g?.item}</span>
+                    <span>{g?.item && normalizeTypography(g.item)}</span>
                   </li>
                 ))}
               </ul>

@@ -2,6 +2,7 @@ import type { DeepPartial } from "ai";
 import { Badge } from "@/components/ui/badge";
 import { ScoreRing } from "@/components/score-ring";
 import { StreamingIndicator } from "@/components/streaming-indicator";
+import { normalizeTypography } from "@/lib/ai/clean-text";
 import type { CvReview } from "@/lib/ai/cv-review";
 
 const SEVERITY_VARIANT = {
@@ -59,7 +60,9 @@ export function CvReviewResult({ review, isLoading, error }: Props) {
         )}
         <div className="flex flex-col gap-1">
           <h3 className="text-sm font-semibold">ATS-friendliness</h3>
-          {review?.summary && <p className="text-muted-foreground text-sm">{review.summary}</p>}
+          {review?.summary && (
+            <p className="text-muted-foreground text-sm">{normalizeTypography(review.summary)}</p>
+          )}
         </div>
       </div>
 
@@ -80,9 +83,15 @@ export function CvReviewResult({ review, isLoading, error }: Props) {
                       {CATEGORY_LABEL[issue.category] ?? issue.category}
                     </Badge>
                   )}
-                  {issue?.problem && <span className="text-sm font-medium">{issue.problem}</span>}
+                  {issue?.problem && (
+                    <span className="text-sm font-medium">
+                      {normalizeTypography(issue.problem)}
+                    </span>
+                  )}
                 </div>
-                {issue?.fix && <p className="text-muted-foreground text-sm">{issue.fix}</p>}
+                {issue?.fix && (
+                  <p className="text-muted-foreground text-sm">{normalizeTypography(issue.fix)}</p>
+                )}
               </li>
             ))}
           </ul>

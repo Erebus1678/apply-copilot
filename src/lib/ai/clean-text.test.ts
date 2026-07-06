@@ -1,4 +1,4 @@
-import { cleanAiText } from "./clean-text";
+import { cleanAiText, normalizeTypography } from "./clean-text";
 
 describe("cleanAiText", () => {
   it("drops a meta preamble line", () => {
@@ -59,5 +59,21 @@ describe("cleanAiText", () => {
   it("leaves a real hyphen unchanged", () => {
     const clean = "This is a well-known, state-of-the-art approach.";
     expect(cleanAiText(clean)).toBe(clean);
+  });
+});
+
+describe("normalizeTypography", () => {
+  it("strips em-dashes and en-dashes", () => {
+    expect(normalizeTypography("I led the project — end to end.")).toBe(
+      "I led the project, end to end.",
+    );
+    expect(normalizeTypography("a well—known result")).not.toMatch(/[—–]/);
+  });
+
+  it("normalizes curly quotes and ellipsis to ASCII", () => {
+    expect(normalizeTypography("She said “hi”, it's a ‘test’.")).toBe(
+      "She said \"hi\", it's a 'test'.",
+    );
+    expect(normalizeTypography("Wait for it…")).toBe("Wait for it...");
   });
 });

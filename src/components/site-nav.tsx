@@ -22,7 +22,7 @@ export function SiteNav() {
   return (
     <header className="border-border/80 bg-background/80 sticky top-0 z-10 border-b backdrop-blur">
       <nav aria-label="Main" className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-3">
-        <Link href="/" aria-label="Apply Copilot — home" className="font-semibold tracking-tight">
+        <Link href="/" aria-label="Apply Copilot home" className="font-semibold tracking-tight">
           Apply<span className="text-primary">Copilot</span>
         </Link>
 

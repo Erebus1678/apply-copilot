@@ -11,7 +11,7 @@ export default function StatsPage() {
     <PageShell
       eyebrow="Pipeline · Stats"
       title="Your application stats"
-      intro="A read-only snapshot of your pipeline — totals, offer rate, average fit, and how your applications are distributed across stages."
+      intro="A read-only snapshot of your pipeline, totals, offer rate, average fit, and how your applications are distributed across stages."
     >
       <StatsView />
     </PageShell>

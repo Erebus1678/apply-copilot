@@ -48,7 +48,7 @@ export default function Home() {
             className="text-muted-foreground reveal max-w-xl text-lg text-pretty"
             style={{ animationDelay: "130ms" }}
           >
-            Turn a job description into a fit score, a gap list, and a drafted cover letter — then
+            Turn a job description into a fit score, a gap list, and a drafted cover letter, then
             track every application in one place. Runs on your own model; nothing has to leave your
             machine.
           </p>
@@ -71,7 +71,7 @@ export default function Home() {
                 href="/analyze?demo=1"
                 className={cn(buttonVariants({ size: "lg", variant: "outline" }))}
               >
-                Try the live demo — no key needed
+                Try the live demo, no key needed
               </Link>
             )}
           </div>

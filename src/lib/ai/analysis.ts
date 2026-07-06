@@ -53,7 +53,7 @@ export const analyzeRequestSchema = z.object({
 export type AnalyzeRequest = z.infer<typeof analyzeRequestSchema>;
 
 const SYSTEM_PROMPT =
-  "You are a precise technical recruiter. Extract only what the job description states; do not invent requirements. When a CV is provided, assess fit honestly — a low score with real gaps is more useful than flattery. When no CV is provided, set `fit` to null. Judge fit only on skills, experience, and projects: never let the candidate's name, gender, age, nationality, school/university name, GPA/grades, or city/location affect the score or any feedback.";
+  "You are a precise technical recruiter. Extract only what the job description states; do not invent requirements. When a CV is provided, assess fit honestly — a low score with real gaps is more useful than flattery. When no CV is provided, set `fit` to null. Judge fit only on skills, experience, and projects: never let the candidate's name, gender, age, nationality, school/university name, GPA/grades, or city/location affect the score or any feedback. Use plain ASCII punctuation only: no em-dashes or en-dashes (— –), no curly quotes, no ellipsis character (write three periods).";
 
 // Banded anchors so the fit score is consistent and explainable, not an arbitrary number.
 const FIT_RUBRIC = `Score \`fit.score\` on this scale:

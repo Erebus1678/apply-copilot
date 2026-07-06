@@ -191,7 +191,7 @@ export function CoverLetterView() {
         <div className="flex flex-col gap-1.5">
           <CvInput
             id="cl-cv"
-            placeholder="Paste your CV once — the letter is grounded strictly in it."
+            placeholder="Paste your CV once, the letter is grounded strictly in it."
             disabled={isLoading}
           />
           {cvError && (
@@ -231,7 +231,7 @@ export function CoverLetterView() {
           />
         ) : (
           <p className="text-muted-foreground text-sm">
-            Paste a job description and your CV, then draft a tailored letter — streamed and
+            Paste a job description and your CV, then draft a tailored letter, streamed and
             editable, with the AI-slop filtered out.
           </p>
         )}

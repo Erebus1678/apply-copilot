@@ -44,7 +44,7 @@ describe("CvInput", () => {
     render(<CvInput id="cv" placeholder="Paste your CV" />);
 
     expect(screen.getByText("resume.pdf")).toBeInTheDocument();
-    expect(screen.getByLabelText("Uploaded PDF preview")).toBeInTheDocument();
+    expect(screen.getByTitle("Uploaded PDF preview")).toBeInTheDocument();
     // No raw textarea for the CV in file mode (the extracted text is behind a disclosure).
     expect(screen.queryByPlaceholderText("Paste your CV")).not.toBeInTheDocument();
 

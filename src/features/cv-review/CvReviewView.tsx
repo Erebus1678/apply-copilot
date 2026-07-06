@@ -23,7 +23,7 @@ export function CvReviewView() {
     event.preventDefault();
     const text = cv?.text.trim() ?? "";
     if (text.length < 50) {
-      setNotice("Add at least 50 characters of your CV — paste it above, or upload a PDF/DOCX.");
+      setNotice("Add at least 50 characters of your CV, paste it above, or upload a PDF/DOCX.");
       return;
     }
     setNotice("");
@@ -58,13 +58,13 @@ export function CvReviewView() {
               disabled={isLoading}
               className="border-input size-4 rounded"
             />
-            Thorough — extract structure first, then review (slower, fewer slips)
+            Thorough, extract structure first, then review (slower, fewer slips)
           </label>
         </div>
 
         <CvInput
           id="cv-review-cv"
-          placeholder="Paste your CV — or upload a PDF/DOCX below."
+          placeholder="Paste your CV, or upload a PDF/DOCX below."
           disabled={isLoading}
         />
 

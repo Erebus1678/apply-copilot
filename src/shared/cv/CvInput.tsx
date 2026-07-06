@@ -71,14 +71,16 @@ function FilePreview({
   // PDF: native browser viewer via a blob URL. The URL must be created inside the
   // effect (not useMemo): React StrictMode mounts → cleans up → mounts again, and
   // the cleanup revokes the URL. A memoized URL wouldn't be re-created on the
-  // second mount, leaving <object> pointing at a dead blob ("preview unavailable").
+  // second mount, leaving the iframe pointing at a dead blob ("preview unavailable").
+  // The blob is re-wrapped with an explicit application/pdf type so the browser
+  // never has to guess the content type from the original File.
   useEffect(() => {
     if (!pdf || typeof URL.createObjectURL !== "function") {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- blob URL lifecycle must live in the effect so StrictMode re-creates it after cleanup revokes it
       setPdfUrl(null);
       return;
     }
-    const url = URL.createObjectURL(file);
+    const url = URL.createObjectURL(new Blob([file], { type: "application/pdf" }));
     setPdfUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [file, pdf]);
@@ -122,21 +124,23 @@ function FilePreview({
       </div>
 
       {pdf ? (
-        <object
-          data={pdfUrl ?? undefined}
-          type="application/pdf"
-          aria-label="Uploaded PDF preview"
-          className="border-border h-96 w-full rounded-md border"
-        >
-          <p className="text-muted-foreground p-3 text-sm">
-            PDF preview unavailable here.{" "}
-            {pdfUrl && (
-              <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="underline">
-                Open it in a new tab
-              </a>
-            )}
-          </p>
-        </object>
+        <div className="flex flex-col gap-1.5">
+          <iframe
+            src={pdfUrl ?? undefined}
+            title="Uploaded PDF preview"
+            className="border-border h-96 w-full rounded-md border"
+          />
+          {pdfUrl && (
+            <a
+              href={pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground self-start text-xs underline"
+            >
+              Open in a new tab
+            </a>
+          )}
+        </div>
       ) : (
         <div
           ref={docxRef}

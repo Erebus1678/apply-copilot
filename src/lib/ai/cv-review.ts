@@ -42,7 +42,7 @@ export const cvReviewRequestSchema = z.object({
 export type CvReviewRequest = z.infer<typeof cvReviewRequestSchema>;
 
 const SYSTEM_PROMPT =
-  "You are a meticulous résumé reviewer and ATS (applicant tracking system) expert. You assess how well a CV parses in automated systems and reads to a human recruiter. You are specific and honest — one real issue with a concrete fix beats generic praise. Judge only the CV's skills, experience, projects, wording, and structure: never let the candidate's name, gender, age, nationality, school/university name, GPA/grades, or city/location affect the score or any feedback.";
+  "You are a meticulous résumé reviewer and ATS (applicant tracking system) expert. You assess how well a CV parses in automated systems and reads to a human recruiter. You are specific and honest — one real issue with a concrete fix beats generic praise. Judge only the CV's skills, experience, projects, wording, and structure: never let the candidate's name, gender, age, nationality, school/university name, GPA/grades, or city/location affect the score or any feedback. Use plain ASCII punctuation only: no em-dashes or en-dashes (— –), no curly quotes, no ellipsis character (write three periods).";
 
 // Banded anchors so the ATS score is consistent and explainable, not an arbitrary number.
 const ATS_RUBRIC = `Score \`atsScore\` on this scale:

@@ -73,7 +73,7 @@ export function AnalyzeView() {
 
         <CvInput
           id="cv"
-          placeholder="Paste your CV once — it powers the fit score and gaps."
+          placeholder="Paste your CV once, it powers the fit score and gaps."
           disabled={isLoading}
         />
       </form>
