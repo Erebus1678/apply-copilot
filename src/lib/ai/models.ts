@@ -1,7 +1,11 @@
 import { getAiConfig, type ProviderId } from "./config";
 import { PROVIDERS, type ProviderSpec } from "./providers";
+import { envInt } from "@/lib/config/env";
 
-const MODELS_TIMEOUT_MS = 3000;
+// Tunneled/relayed base URLs (e.g. Tailscale Funnel) can push /models round-trips
+// well past a few seconds; default high enough to tolerate that, env-tunable for
+// operators who need it lower or higher.
+const MODELS_TIMEOUT_MS = envInt("MODELS_TIMEOUT_MS", 8000);
 const OPENAI_DEFAULT_BASE = "https://api.openai.com/v1";
 const ANTHROPIC_MODELS_URL = "https://api.anthropic.com/v1/models";
 

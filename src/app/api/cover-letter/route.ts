@@ -8,12 +8,12 @@ import { enforceAiRateLimit } from "@/lib/http/rate-limit";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-// Soft ceiling so short/custom modes don't overrun; standard stays uncapped
-// since the deterministic clamp only applies to custom mode client-side.
-function maxOutputTokensFor(data: { length?: string; maxChars?: number }): number | undefined {
+// Soft ceiling per length so no mode overruns a low-credit provider's cap
+// (e.g. free OpenRouter accounts reject unbounded requests).
+function maxOutputTokensFor(data: { length?: string; maxChars?: number }): number {
   if (data.length === "short") return 250;
   if (data.length === "custom") return Math.ceil((data.maxChars ?? 1200) / 3);
-  return undefined;
+  return 1200; // standard
 }
 
 /** Stream a tailored, anti-slop cover letter as plain text. */

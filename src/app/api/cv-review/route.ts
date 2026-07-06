@@ -11,6 +11,10 @@ import { enforceAiRateLimit } from "@/lib/http/rate-limit";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+// Well under low-credit provider ceilings (e.g. free OpenRouter accounts
+// reject unbounded requests) and plenty for a structured CV/ATS review.
+const CV_REVIEW_MAX_OUTPUT_TOKENS = 4000;
+
 /** Stream a structured CV quality / ATS review as a partial-object stream. */
 export async function POST(req: Request) {
   const limited = enforceAiRateLimit(req);
@@ -52,6 +56,7 @@ export async function POST(req: Request) {
       output: Output.object({ schema: cvReviewSchema }),
       system,
       prompt: finalPrompt,
+      maxOutputTokens: CV_REVIEW_MAX_OUTPUT_TOKENS,
       onError: ({ error }) => logAiError(error, "cv-review"),
     });
     return toFenceStrippedTextResponse(result.textStream);
