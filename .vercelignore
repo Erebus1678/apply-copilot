@@ -1,0 +1,14 @@
+# Non-app files excluded from Vercel deploys (belt-and-suspenders; git builds
+# already exclude gitignored paths). Keep this in sync with the internal
+# entries in .gitignore.
+looper-output
+.looper
+.looper-oss
+.looper-providers
+.codegraph
+.claude
+docs/AUDIT.md
+test-results
+playwright-report
+blob-report
+coverage
