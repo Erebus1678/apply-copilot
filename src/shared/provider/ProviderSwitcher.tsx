@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PROVIDER_IDS, type ProviderId } from "@/lib/ai/config";
+import type { ModelInfo } from "@/lib/ai/models";
 import { PROVIDERS } from "@/lib/ai/providers";
 import { cn } from "@/lib/utils";
 import {
@@ -58,7 +59,7 @@ export function ProviderSwitcher() {
   const config = useProviderConfig();
   const [open, setOpen] = useState(false);
   const [health, setHealth] = useState<HealthMap>({});
-  const [models, setModels] = useState<string[]>([]);
+  const [models, setModels] = useState<ModelInfo[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -107,13 +108,13 @@ export function ProviderSwitcher() {
           }),
           signal: controller.signal,
         });
-        const body = (await res.json()) as { data?: string[] };
+        const body = (await res.json()) as { data?: ModelInfo[] };
         if (cancelled) return;
         const list = Array.isArray(body?.data) ? body.data : [];
         setModels(list);
         // "I don't want to pick a model": default to the first served model when
         // this provider has none chosen yet, so the dropdown and the request agree.
-        if (list.length > 0 && !config[active]?.model) setProviderModel(active, list[0]);
+        if (list.length > 0 && !config[active]?.model) setProviderModel(active, list[0].id);
       } catch {
         if (!cancelled) setModels([]);
       } finally {
@@ -151,7 +152,20 @@ export function ProviderSwitcher() {
   // serving it (e.g. not loaded yet), so switching providers never drops it.
   const storedModel = activeEntry?.model;
   const modelOptions =
-    storedModel && !models.includes(storedModel) ? [storedModel, ...models] : models;
+    storedModel && !models.some((m) => m.id === storedModel)
+      ? [{ id: storedModel } satisfies ModelInfo, ...models]
+      : models;
+
+  // Group by channel/vendor for the <optgroup> select; ungrouped models fall
+  // under "Other". Groups sorted alphabetically, models keep parser order.
+  const modelGroups = new Map<string, ModelInfo[]>();
+  for (const m of modelOptions) {
+    const key = m.group ?? "Other";
+    const bucket = modelGroups.get(key);
+    if (bucket) bucket.push(m);
+    else modelGroups.set(key, [m]);
+  }
+  const sortedGroups = [...modelGroups.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 
   return (
     <div ref={rootRef} className="relative">
@@ -254,15 +268,25 @@ export function ProviderSwitcher() {
                 // Real list from the provider — pick, don't type.
                 <select
                   id="provider-model"
-                  value={storedModel ?? models[0]}
+                  value={storedModel ?? models[0]?.id}
                   onChange={(e) => setProviderModel(active, e.target.value)}
                   className="border-border bg-background focus-visible:ring-ring rounded-md border px-2 py-1 font-mono text-xs outline-none focus-visible:ring-2"
                 >
-                  {modelOptions.map((m) => (
-                    <option key={m} value={m}>
-                      {m}
-                    </option>
-                  ))}
+                  {sortedGroups.length === 1 && sortedGroups[0][0] === "Other"
+                    ? sortedGroups[0][1].map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.tier ? `${m.id} · ${m.tier}` : m.id}
+                        </option>
+                      ))
+                    : sortedGroups.map(([group, groupModels]) => (
+                        <optgroup key={group} label={group}>
+                          {groupModels.map((m) => (
+                            <option key={m.id} value={m.id}>
+                              {m.tier ? `${m.id} · ${m.tier}` : m.id}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
                 </select>
               ) : (
                 // Fallback: provider unreachable or list unavailable (e.g. cloud

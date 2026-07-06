@@ -9,20 +9,66 @@ const MODELS_TIMEOUT_MS = envInt("MODELS_TIMEOUT_MS", 8000);
 const OPENAI_DEFAULT_BASE = "https://api.openai.com/v1";
 const ANTHROPIC_MODELS_URL = "https://api.anthropic.com/v1/models";
 
-type ModelsResponse = { data?: Array<{ id?: unknown }> };
+export type ModelInfo = { id: string; group?: string; tier?: "free" | "paid" };
+
+type RawPricing = { prompt?: unknown; completion?: unknown };
+type RawModel = { id?: unknown; owned_by?: unknown; pricing?: RawPricing };
+type ModelsResponse = { data?: unknown };
+
+/** `"0"`, `"0.0"`, 0 → 0. Anything else (missing, non-numeric) → NaN. */
+function toNumber(value: unknown): number {
+  if (typeof value === "number") return value;
+  if (typeof value === "string") return Number(value);
+  return NaN;
+}
+
+function deriveGroup(raw: RawModel, id: string): string | undefined {
+  if (typeof raw.owned_by === "string" && raw.owned_by.trim()) return raw.owned_by;
+  const slash = id.indexOf("/");
+  return slash > 0 ? id.slice(0, slash) : undefined;
+}
+
+function deriveTier(raw: RawModel, id: string): "free" | "paid" | undefined {
+  if (id.endsWith(":free")) return "free";
+  if (raw.pricing) {
+    const prompt = toNumber(raw.pricing.prompt);
+    const completion = toNumber(raw.pricing.completion);
+    if (Number.isNaN(prompt) || Number.isNaN(completion)) return undefined;
+    return prompt === 0 && completion === 0 ? "free" : "paid";
+  }
+  // No pricing data at all (e.g. 9Router/plain OpenAI-compatible `/models`) — best
+  // effort from the id only; anything else is left untagged rather than guessed.
+  if (id.startsWith("ollama/") || /free/i.test(id)) return "free";
+  return undefined;
+}
 
 /**
- * Pull chat-capable model ids out of an OpenAI/Anthropic `{ data: [{ id }] }`
- * listing. Embedding/reranker models are dropped — they can't chat, and would
- * otherwise pollute the picker (or be auto-selected and break every request).
+ * Turn an OpenAI/Anthropic/OpenRouter-style `{ data: [...] }` listing into
+ * enriched model info: id (deduped, chat-only), a channel/vendor group, and a
+ * best-effort free/paid tier. Embedding/reranker models are dropped — they
+ * can't chat, and would otherwise pollute the picker (or be auto-selected and
+ * break every request). Never throws — unparseable entries are skipped.
  */
-function parseIds(body: unknown): string[] {
+function parseModels(body: unknown): ModelInfo[] {
   const data = (body as ModelsResponse)?.data;
   if (!Array.isArray(data)) return [];
-  const ids = data
-    .map((m) => (m && typeof m.id === "string" ? m.id : null))
-    .filter((id): id is string => Boolean(id) && !/embed|rerank/i.test(id!));
-  return [...new Set(ids)].sort((a, b) => a.localeCompare(b));
+
+  const byId = new Map<string, ModelInfo>();
+  for (const entry of data) {
+    try {
+      const raw = entry as RawModel;
+      const id = typeof raw?.id === "string" ? raw.id : null;
+      if (!id || /embed|rerank/i.test(id) || byId.has(id)) continue;
+      byId.set(id, { id, group: deriveGroup(raw, id), tier: deriveTier(raw, id) });
+    } catch {
+      // unparseable shape — skip this entry, keep the rest
+    }
+  }
+
+  return [...byId.values()].sort((a, b) => {
+    const groupCmp = (a.group ?? "").localeCompare(b.group ?? "");
+    return groupCmp !== 0 ? groupCmp : a.id.localeCompare(b.id);
+  });
 }
 
 function requestFor(
@@ -53,7 +99,7 @@ export async function listProviderModels(opts: {
   provider: ProviderId;
   apiKey?: string;
   baseUrl?: string;
-}): Promise<string[]> {
+}): Promise<ModelInfo[]> {
   const spec = PROVIDERS[opts.provider];
   const resolved = getAiConfig().providers[opts.provider];
   const key = opts.apiKey?.trim() || resolved.apiKey;
@@ -65,7 +111,7 @@ export async function listProviderModels(opts: {
     const { url, headers } = requestFor(spec, baseUrl, key);
     const res = await fetch(url, { headers, signal: controller.signal });
     if (!res.ok) return [];
-    return parseIds(await res.json());
+    return parseModels(await res.json());
   } catch {
     return []; // unreachable / aborted / non-JSON — caller falls back to free text
   } finally {
