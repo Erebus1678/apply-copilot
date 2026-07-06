@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { isDemoEnabled } from "@/lib/ai/demo";
 import { cn } from "@/lib/utils";
 
 // A real sequence — the application workflow — so the numbering carries meaning.
@@ -65,6 +66,14 @@ export default function Home() {
             >
               Open the job tracker →
             </Link>
+            {isDemoEnabled() && (
+              <Link
+                href="/analyze?demo=1"
+                className={cn(buttonVariants({ size: "lg", variant: "outline" }))}
+              >
+                Try the live demo — no key needed
+              </Link>
+            )}
           </div>
         </div>
       </section>

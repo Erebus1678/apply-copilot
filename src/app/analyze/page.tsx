@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { PageShell } from "@/components/page-shell";
 import { AnalyzeView } from "@/features/analyze/AnalyzeView";
 
@@ -14,7 +15,9 @@ export default function AnalyzePage() {
       intro="Paste a job description to extract its tech stack, seniority, and archetype. Add your CV to score the fit and surface concrete gaps — streamed live, on your own model."
       wide
     >
-      <AnalyzeView />
+      <Suspense>
+        <AnalyzeView />
+      </Suspense>
     </PageShell>
   );
 }

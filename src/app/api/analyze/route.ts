@@ -2,6 +2,7 @@ import { streamText, Output } from "ai";
 import { getModel } from "@/lib/ai/provider";
 import { analysisSchema, analyzeRequestSchema, buildAnalysisPrompt } from "@/lib/ai/analysis";
 import { maybeCompressViaProxy } from "@/lib/ai/compress-proxy";
+import { isDemoEnabled, streamDemoAnalysis } from "@/lib/ai/demo";
 import { toFenceStrippedTextResponse } from "@/lib/ai/json-stream";
 import { aiErrorResponse, logAiError } from "@/lib/ai/errors";
 import { enforceAiRateLimit } from "@/lib/http/rate-limit";
@@ -24,6 +25,10 @@ export async function POST(req: Request) {
   const parsed = analyzeRequestSchema.safeParse(body);
   if (!parsed.success) {
     return Response.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
+  if (parsed.data.demo && isDemoEnabled()) {
+    return toFenceStrippedTextResponse(streamDemoAnalysis());
   }
 
   const { system, prompt } = buildAnalysisPrompt(parsed.data);
